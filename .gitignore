@@ -1,0 +1,76 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# Environment variables and secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+*.sublime*
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+xcuserdata/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backend specific
+backend/.env
+backend/logs/
+backend/public/*
+!backend/public/.gitkeep
+
+# Temporary files
+.tmp/
+.temp/
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Cache directories
+.cache/
+.parcel-cache/
+
+# Test results
+test-results/
+
+# Local database files
+*.sqlite
+*.db 
