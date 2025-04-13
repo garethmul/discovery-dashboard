@@ -24,7 +24,8 @@ export default defineConfig(({ mode }) => {
       assetsDir: 'assets'
     },
     server: {
-      port: 5173,
+      port: 5176,
+      strictPort: true, // This will fail if port 5176 is already in use rather than trying another port
       proxy: {
         '/api': {
           target: 'http://localhost:3009',

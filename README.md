@@ -1,6 +1,64 @@
-# Domain Crawler Dashboard
+# Discovery Dashboard
 
-A modern React-based dashboard for visualizing data from the domain crawler system. The dashboard provides a comprehensive UI for exploring all aspects of the crawled data.
+A dashboard for viewing crawler data with a built-in mock backend for development.
+
+## Setup
+
+1. Install frontend dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Install backend dependencies:
+   ```bash
+   npm run install:backend
+   ```
+
+## Development
+
+To run both the frontend and backend together:
+
+```bash
+# Using npm script
+npm run dev:all
+
+# Or using the convenience scripts
+./start.sh    # On macOS/Linux
+start.bat     # On Windows
+```
+
+The application will be available at:
+- Frontend: http://localhost:5176
+- Backend API: http://localhost:3009
+
+## Production Build
+
+To build the frontend for production:
+
+```bash
+npm run build
+```
+
+To include the frontend build in the backend for serving:
+
+```bash
+npm run setup
+```
+
+Then you can deploy the entire backend directory which will serve both the API and the frontend.
+
+## Environment Configuration
+
+- `.env` - Main environment variables for the frontend
+- `backend/.env` - Environment variables for the backend API
+
+## Backend API
+
+The backend provides mock API endpoints for development that mimic the format of the production API:
+
+- `/health-check` - Health check endpoint
+- `/domain-data` - List all domains
+- `/domain-data/:id` - Get domain details by ID
 
 ## Features
 
@@ -23,45 +81,6 @@ A modern React-based dashboard for visualizing data from the domain crawler syst
   - Brand analysis
   - Color scheme information
   - AI-generated insights and suggestions
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18.x or higher
-- npm 9.x or higher
-
-### Installation
-
-1. Clone the repository
-2. Navigate to the crawler-dashboard directory
-3. Install dependencies:
-
-```bash
-npm install
-```
-
-4. Create a `.env` file with your configuration (see `.env.example` for required variables)
-
-### Development
-
-To start the development server:
-
-```bash
-npm run dev
-```
-
-The dashboard will be available at http://localhost:5173.
-
-### Building for Production
-
-To build the application for production:
-
-```bash
-npm run build
-```
-
-The build artifacts will be stored in the `dist/` directory.
 
 ## Project Structure
 

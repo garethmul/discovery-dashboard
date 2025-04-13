@@ -19,7 +19,9 @@ const NavigationLogger = () => {
 };
 
 // Get the base URL from the environment or use a default
-const BASE_URL = '/dashboard';
+// Use empty string for local development to avoid basename routing issues
+const isDevelopment = import.meta.env.DEV;
+const BASE_URL = isDevelopment ? '' : '/dashboard';
 
 function App() {
   return (

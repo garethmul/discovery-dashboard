@@ -1,0 +1,18 @@
+{
+  "name": "crawler-dashboard-backend",
+  "version": "1.0.0",
+  "description": "Simple backend API for the crawler dashboard",
+  "main": "server-simple.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server-simple.js",
+    "dev": "node server-simple.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "mysql2": "^3.14.0",
+    "socket.io": "^4.7.2"
+  }
+}
