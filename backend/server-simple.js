@@ -93,7 +93,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Static files
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '../../public')));
 
 // Config endpoint
 app.get('/config', (req, res) => {
@@ -275,6 +275,7 @@ app.get('/domain-data', async (req, res) => {
 app.get('/domain-data/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    console.log(`Fetching domain details for ID: ${id}`);
     
     // Get basic domain information with correct column names
     const [domainRows] = await pool.query(
@@ -282,22 +283,28 @@ app.get('/domain-data/:id', async (req, res) => {
       [id]
     );
     
+    console.log(`Found ${domainRows.length} domain rows for ID ${id}`);
+    
     if (domainRows.length === 0) {
+      console.log(`No domain found with ID ${id}`);
       return res.status(404).json({ error: 'Domain not found' });
     }
     
     const domain = domainRows[0];
+    console.log('Domain data:', JSON.stringify(domain, null, 2));
     
     // Parse the JSON data field if it exists
     let metadataFromData = {};
     if (domain.data && typeof domain.data === 'string') {
       try {
         metadataFromData = JSON.parse(domain.data);
+        console.log('Parsed metadata:', JSON.stringify(metadataFromData, null, 2));
       } catch (parseError) {
         console.error(`Error parsing JSON data for domain ${domain.id}:`, parseError);
       }
     } else if (domain.data && typeof domain.data === 'object') {
       metadataFromData = domain.data;
+      console.log('Using object metadata:', JSON.stringify(metadataFromData, null, 2));
     }
     
     // Delete the data field since we've extracted what we need
@@ -308,18 +315,21 @@ app.get('/domain-data/:id', async (req, res) => {
       'SELECT url, title, status_code as statusCode FROM domain_pages WHERE domain_id = ?',
       [id]
     );
+    console.log(`Found ${pageRows.length} pages for domain ${id}`);
     
     // Get domain opengraph data
     const [opengraphRows] = await pool.query(
-      'SELECT url, title, type, og_type as ogType FROM domain_opengraph WHERE domain_id = ?',
+      'SELECT url, title, type, platform FROM domain_opengraph WHERE domain_id = ?',
       [id]
     );
+    console.log(`Found ${opengraphRows.length} opengraph entries for domain ${id}`);
     
     // Get domain media
     const [mediaRows] = await pool.query(
-      'SELECT url, alt_text as alt, type, category FROM domain_images WHERE domain_id = ?',
+      'SELECT url, alt_text as alt, category FROM domain_images WHERE domain_id = ?',
       [id]
     );
+    console.log(`Found ${mediaRows.length} media entries for domain ${id}`);
     
     // Combine all data
     const fullDomain = {
@@ -340,9 +350,11 @@ app.get('/domain-data/:id', async (req, res) => {
       }
     };
     
+    console.log('Returning full domain data:', JSON.stringify(fullDomain, null, 2));
     res.json(fullDomain);
   } catch (error) {
     console.error(`Error fetching domain ${req.params.id}:`, error);
+    console.error('Error stack:', error.stack);
     
     // Fall back to mock data if database query fails
     const domain = {
@@ -528,7 +540,7 @@ app.get('/test-db', async (req, res) => {
 
 // Serve the dashboard for all other routes
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, '../../public', 'index.html'));
 });
 
 // Start the server

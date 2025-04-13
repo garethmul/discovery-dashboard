@@ -1,0 +1,210 @@
+# Domain Scraper Service with AI Analysis
+
+A comprehensive web scraping microservice for extracting content from domains, enhanced with Brandfetch brand data and AI-powered domain analysis.
+
+## Features
+
+- **Web Scraping**: Extract content from domains including text, images, videos, and structural data
+- **Brand Analysis**: Fetch brand information from Brandfetch API including logos, colors, and fonts
+- **AI Analysis**: Generate detailed AI analysis for domains including:
+  - Brand analysis (industry, business type, target audience)
+  - App development suggestions
+  - Feature recommendations
+  - Color scheme suggestions
+  - Content categories
+  - Marketing tips
+
+## Setup
+
+1. **Clone the repository**:
+   ```
+   git clone <repository-url>
+   cd discovery
+   ```
+
+2. **Install dependencies**:
+   ```
+   npm install
+   ```
+
+3. **Configure environment variables**:
+   Create a `.env` file in the root directory with the following variables:
+   ```
+   # Server Configuration
+   PORT=3009
+   API_KEY=your-service-api-key
+
+   # Database Configuration
+   DB_HOST=localhost
+   DB_PORT=3306
+   DB_USER=root
+   DB_PASSWORD=your-db-password
+   DB_NAME=discovery
+
+   # API Keys
+   OPENAI_API_KEY=your-openai-api-key
+   BRANDFETCH_API_KEY=your-brandfetch-api-key
+
+   # Crawler Configuration
+   MAX_CONCURRENT_JOBS=5
+   ```
+
+4. **Set up the database**:
+   Create the database structure:
+   ```
+   npm run setup-domain-analysis
+   ```
+   This will create all required tables for the domain scraping, Brandfetch integration, and AI analysis.
+
+5. **Start the service**:
+   ```
+   npm run dev
+   ```
+   The service will be available at http://localhost:3009 and the dashboard at http://localhost:3009/admin
+
+## Usage
+
+### Dashboard
+
+Access the dashboard at http://localhost:3009/admin to:
+- Submit domains for scraping
+- Monitor job progress
+- View and download results
+
+### API Endpoints
+
+#### Submit a Scraping Job
+
+```
+POST /api/scrape
+```
+
+**Request Body**:
+```json
+{
+  "domain": "example.com",
+  "depth": 1,
+  "priority": "normal",
+  "extractors": ["general", "blog", "images", "videos", "social", "podcast", "colors"]
+}
+```
+
+**Headers**:
+```
+Authorization: Bearer YOUR_API_KEY
+```
+
+**Response**:
+```json
+{
+  "jobId": "job-uuid-123",
+  "status": "queued",
+  "estimatedTime": "30s"
+}
+```
+
+#### Check Job Status
+
+```
+GET /api/scrape/status/:jobId
+```
+
+**Headers**:
+```
+Authorization: Bearer YOUR_API_KEY
+```
+
+**Response**:
+```json
+{
+  "jobId": "job-uuid-123",
+  "status": "processing",
+  "progress": 50,
+  "message": "Extracting content"
+}
+```
+
+#### Get Job Results
+
+```
+GET /api/scrape/results/:jobId
+```
+
+**Headers**:
+```
+Authorization: Bearer YOUR_API_KEY
+```
+
+**Response**:
+```json
+{
+  "domain": "example.com",
+  "scrapedAt": "2023-06-15T14:30:00Z",
+  "general": { /* ... */ },
+  "blog": { /* ... */ },
+  "images": [ /* ... */ ],
+  "videos": [ /* ... */ ],
+  "socialMedia": { /* ... */ },
+  "podcast": { /* ... */ },
+  "colors": [ /* ... */ ],
+  "brandData": { /* ... */ },
+  "aiAnalysis": {
+    "brandAnalysis": { /* ... */ },
+    "appSuggestions": { /* ... */ },
+    "features": [ /* ... */ ],
+    "colorSchemes": [ /* ... */ ],
+    "contentCategories": [ /* ... */ ],
+    "marketingTips": [ /* ... */ ],
+    "appIdea1": "...",
+    "appIdea1Headline": "...",
+    "appIdea2": "...",
+    "appIdea2Headline": "...",
+    "appIdea3": "...",
+    "appIdea3Headline": "..."
+  }
+}
+```
+
+## Database Structure
+
+The service uses several tables to store domain data:
+
+1. `domains` - Basic domain information
+2. `domain_pages` - Raw HTML content from crawled pages
+3. `domain_info` - Enhanced domain information with AI analysis
+4. `domain_brand_analysis` - AI-generated brand analysis
+5. `domain_app_suggestions` - AI-generated app suggestions
+6. `domain_features` - AI-generated feature recommendations
+7. `domain_color_schemes` - AI-generated color schemes
+8. `domain_content_categories` - AI-generated content categories
+9. `domain_marketing_tips` - AI-generated marketing tips
+10. `domain_app_ideas` - AI-generated app ideas
+11. `brandfetch_data` - Cached brand data from Brandfetch API
+
+## Dependencies
+
+- Node.js >= 18.0.0
+- MySQL >= 8.0
+- OpenAI API (for AI analysis)
+- Brandfetch API (for brand data)
+- Puppeteer (for web scraping)
+
+## Deployment
+
+### Docker
+```
+docker build -t domain-scraper .
+docker run -p 3009:3009 domain-scraper
+```
+
+### Heroku
+```
+heroku create domain-scraper
+heroku buildpacks:add heroku/nodejs
+heroku buildpacks:add jontewks/puppeteer
+git push heroku main
+```
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

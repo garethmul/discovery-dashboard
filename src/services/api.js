@@ -551,66 +551,33 @@ const normalizeDomainData = (domains) => {
  * @param {string} id - Domain ID
  * @returns {Promise<Object>} Domain object with all details
  */
-export const getDomainsById = async (id) => {
-  // If API is unavailable, return mock data immediately
-  if (!isApiAvailable) {
-    console.warn('API is unavailable, using mock data for domain detail');
-    const mockDomain = MOCK_DOMAINS.find(domain => 
-      domain.domainId === id || 
-      domain.domainName === id || 
-      domain.domainId?.toString() === id.toString() || 
-      domain.domainName?.toString() === id.toString()
-    ) || MOCK_DOMAINS[0];
-    
-    return mockDomain;
-  }
-
+export const getDomainById = async (id) => {
   try {
-    // First try the standard endpoint
     const response = await api.get(`/domain-data/${id}`);
-    
-    // Log the raw response for debugging
     console.log(`Domain data response for ID ${id}:`, response.data);
     
     // Handle different response formats
     let domainData = response.data;
     
-    if (response.data && typeof response.data === 'object') {
-      // If the API returns an object with domain inside another property
-      const possibleKeys = ['domain', 'data', 'item', 'result'];
-      for (const key of possibleKeys) {
-        if (response.data[key] && typeof response.data[key] === 'object') {
-          console.log(`Found domain object in response.data.${key}`);
-          domainData = response.data[key];
-          break;
-        }
-      }
+    // If we have a nested data object, merge it with the top-level data
+    if (domainData.data && typeof domainData.data === 'object') {
+      console.log('Found domain object in response.data.data');
+      domainData = {
+        ...domainData,
+        ...domainData.data,
+        // Preserve the original top-level fields
+        id: domainData.id,
+        domain_name: domainData.domain_name,
+        status: domainData.status,
+        last_scraped_at: domainData.last_scraped_at
+      };
     }
     
-    // Normalize the domain data before returning
+    console.log('Domain raw data for normalization:', domainData);
     return normalizeSingleDomain(domainData);
   } catch (error) {
     console.error(`Error fetching domain ${id}:`, error);
-    
-    // Try alternative endpoint format if the first one fails
-    try {
-      const alternativeResponse = await api.get(`/domain-data/id/${id}`);
-      console.log(`Alternative endpoint response for ID ${id}:`, alternativeResponse.data);
-      return normalizeSingleDomain(alternativeResponse.data);
-    } catch (alternativeError) {
-      console.error(`Alternative endpoint also failed for domain ${id}:`, alternativeError);
-    }
-    
-    // Return mock domain if API fails
-    console.warn('Using mock domain data due to API error');
-    const mockDomain = MOCK_DOMAINS.find(domain => 
-      domain.domainId === id || 
-      domain.domainName === id || 
-      domain.domainId?.toString() === id.toString() || 
-      domain.domainName?.toString() === id.toString()
-    ) || MOCK_DOMAINS[0];
-    
-    return mockDomain;
+    return MOCK_DOMAINS[0];
   }
 };
 
@@ -627,69 +594,38 @@ const normalizeSingleDomain = (domain) => {
   
   console.log('Domain raw data for normalization:', domain);
   
-  // Check if we have the API format with domain_name
-  const isApiFormat = domain.domain_name && domain.id;
-  
-  if (isApiFormat) {
-    console.log('Detected API server format with domain_name field for single domain');
-    
-    // Determine status based on last_scraped_at
-    let status = 'pending';
-    if (domain.last_scraped_at) {
-      status = 'complete';
-    }
-    
-    return {
-      domainId: domain.id.toString(),
-      domainName: domain.domain_name,
-      status: domain.status || status,
-      lastScraped: domain.last_scraped_at,
-      crawlProgress: {
-        pagesTotal: domain.page_count || 0,
-        pagesCrawled: domain.pages_crawled || 0,
-        status: domain.status || status
-      },
-      // Include any other fields that might be present
-      ...domain.data,
-      // Create empty structures for expected fields to avoid null errors
-      metadata: domain.metadata || domain.data?.metadata || {},
-      pages: domain.pages || domain.data?.pages || [],
-      podcasts: domain.podcasts || domain.data?.podcasts || { episodes: [], feeds: [] },
-      opengraph: domain.opengraph || domain.data?.opengraph || [],
-      media: domain.media || domain.data?.media || { images: { all: [] } },
-      // Add a flag to indicate this is from the API with limited data
-      isFromApi: true
-    };
-  }
-  
-  // Original normalization logic for other formats
-  const domainName = domain.domainName || domain.domain || domain.url || domain.name;
+  // First check for domain_name in any format
+  const domainName = domain.domain_name || domain.domainName || domain.domain || domain.url || domain.name;
   if (!domainName) {
     console.warn('Domain missing name, falling back to mock data:', domain);
     return MOCK_DOMAINS[0];
   }
   
-  console.log('Normalizing single domain:', domainName);
-  
-  return {
-    ...domain,
-    domainId: domain.domainId || domain.id || domain._id,
+  // Create the normalized domain object
+  const normalizedDomain = {
+    domainId: domain.id?.toString() || domain.domainId,
     domainName: domainName,
-    status: domain.status || domain.crawlProgress?.status || domain.crawl_status || 'unknown',
-    lastScraped: domain.lastScraped || domain.lastCrawled || domain.crawlProgress?.lastActive || domain.last_crawled,
-    crawlProgress: domain.crawlProgress || {
-      pagesTotal: domain.page_count || domain.pages?.length || 0,
-      pagesCrawled: domain.pages_crawled || domain.crawlProgress?.pagesCrawled || 0,
-      status: domain.status || domain.crawl_status || 'unknown'
+    status: domain.status || 'unknown',
+    lastScraped: domain.last_scraped_at || domain.lastScraped,
+    crawlProgress: {
+      pagesTotal: domain.pages?.length || domain.page_count || 0,
+      pagesCrawled: domain.pages_crawled || 0,
+      status: domain.status || 'unknown'
     },
-    media: domain.media || (domain.images ? { 
-      images: {
-        all: domain.images,
-        logoImages: domain.images.filter(img => img.category?.toLowerCase() === 'logo'),
-        heroImages: domain.images.filter(img => img.category?.toLowerCase() === 'hero')
-      }
-    } : undefined)
+    // Include metadata if available
+    metadata: domain.metadata || {},
+    // Include pages if available
+    pages: domain.pages || [],
+    // Include opengraph data if available
+    opengraph: domain.opengraph || [],
+    // Include media data if available
+    media: domain.media || { images: { all: [] } },
+    // Add a flag to indicate this is from the API
+    isFromApi: true
   };
+  
+  console.log('Normalized domain:', normalizedDomain);
+  return normalizedDomain;
 };
 
 /**

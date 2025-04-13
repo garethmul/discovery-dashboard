@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getDomainsById } from "../../services/api";
+import { getDomainById } from "../../services/api";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 import { cn } from "../../lib/utils";
 import { AlertCircle, Calendar, FileText, Globe, LayoutGrid, MessageSquare, Server, Headphones, Share2, ImageIcon } from "lucide-react";
@@ -27,7 +27,7 @@ export default function DomainDetailPage() {
       try {
         setLoading(true);
         console.log('Fetching domain with ID:', id);
-        const data = await getDomainsById(id);
+        const data = await getDomainById(id);
         console.log('Domain data received:', data);
         setDomain(data);
       } catch (error) {
