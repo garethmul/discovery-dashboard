@@ -63,14 +63,19 @@ export default function DomainImages({ domain }) {
     }
     
     // Normalize image objects
-    const normalizedImages = allImages.map(img => ({
-      url: img.url || img.src || img.imageUrl,
-      alt: img.alt || img.altText || img.description || 'Image',
-      width: img.width || null,
-      height: img.height || null,
-      category: img.category || 'Other',
-      confidence: img.confidence || null
-    })).filter(img => img.url); // Filter out images without URL
+    const normalizedImages = allImages.map(img => {
+      console.log('Processing image:', img);  // Debug log
+      return {
+        url: img.url || img.src || img.imageUrl,
+        alt: img.alt || img.altText || img.description || 'Image',
+        width: img.width || null,
+        height: img.height || null,
+        category: img.category || 'Other',
+        confidence: img.confidence || null
+      };
+    }).filter(img => img.url);
+    
+    console.log('Normalized images:', normalizedImages);  // Debug log
     
     setImages(normalizedImages);
     setFilteredImages(normalizedImages);
@@ -160,7 +165,14 @@ export default function DomainImages({ domain }) {
               <img
                 src={image.url}
                 alt={image.alt}
-                className="h-full w-full object-cover object-center"
+                className="h-full w-full object-contain object-center"
+                onLoad={(e) => {
+                  const img = e.target;
+                  image.width = img.naturalWidth;
+                  image.height = img.naturalHeight;
+                  // Force a re-render
+                  setImages([...images]);
+                }}
                 onError={(e) => {
                   e.target.onerror = null;
                   e.target.src = "https://placehold.co/400x400/png?text=Image+Error";
@@ -174,7 +186,16 @@ export default function DomainImages({ domain }) {
               </div>
             </div>
             <div className="p-2">
-              <p className="truncate text-xs text-muted-foreground">{image.alt}</p>
+              <div className="flex flex-col space-y-1">
+                <p className="truncate text-xs text-muted-foreground">{image.alt}</p>
+                {image.width && image.height ? (
+                  <p className="text-xs text-muted-foreground">
+                    {image.width} × {image.height}
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground/50">No dimensions</p>
+                )}
+              </div>
             </div>
           </div>
         ))}
