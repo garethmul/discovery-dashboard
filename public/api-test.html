@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>API Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+    pre { background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    button { padding: 8px 12px; background: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    input { padding: 8px; width: 100%; margin-bottom: 10px; box-sizing: border-box; }
+    .container { margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <h1>API Test Tool</h1>
+  
+  <div class="container">
+    <h2>API Key</h2>
+    <input type="text" id="apiKey" placeholder="Enter API Key" value="test-api-key-123">
+  </div>
+  
+  <div class="container">
+    <h2>GET /api/domain-data</h2>
+    <button onclick="fetchDomains()">Test Fetch Domains</button>
+    <h3>Response:</h3>
+    <pre id="domainsResult">Results will appear here...</pre>
+  </div>
+  
+  <div class="container">
+    <h2>How to use this API</h2>
+    <p>Based on the server code, try these API keys:</p>
+    <ul>
+      <li><code>test-api-key-123</code></li>
+      <li><code>b2c0c67c1e9a4257b0e3d04dc88b6d71</code></li>
+    </ul>
+    <p>The API should accept different authentication methods:</p>
+    <ul>
+      <li>Header: <code>X-API-Key: YOUR_KEY</code></li>
+      <li>Header: <code>Authorization: Bearer YOUR_KEY</code></li>
+      <li>Query parameter: <code>?apiKey=YOUR_KEY</code></li>
+    </ul>
+  </div>
+
+  <script>
+    async function fetchDomains() {
+      const resultElement = document.getElementById('domainsResult');
+      const apiKey = document.getElementById('apiKey').value;
+      
+      try {
+        resultElement.textContent = 'Loading...';
+        
+        // Make the API request with different authentication methods
+        const response = await fetch('/api/domain-data?apiKey=' + apiKey, {
+          headers: {
+            'X-API-Key': apiKey,
+            'Authorization': 'Bearer ' + apiKey
+          }
+        });
+        
+        const data = await response.json();
+        resultElement.textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        resultElement.textContent = 'Error: ' + error.message;
+      }
+    }
+  </script>
+</body>
+</html> 

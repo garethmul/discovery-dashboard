@@ -1,0 +1,261 @@
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { getDomainsById } from "../../services/api";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
+import { cn } from "../../lib/utils";
+import { AlertCircle, Calendar, FileText, Globe, LayoutGrid, MessageSquare, Server, Headphones, Share2, ImageIcon } from "lucide-react";
+import DomainGeneralInfo from "./DomainGeneralInfo";
+import DomainMetadata from "./DomainMetadata";
+import DomainSiteStructure from "./DomainSiteStructure";
+import DomainBlogContent from "./DomainBlogContent";
+import DomainAiAnalysis from "./DomainAiAnalysis";
+import DomainPodcasts from "./DomainPodcasts";
+import DomainSocialProfiles from "./DomainSocialProfiles";
+import DomainImages from "./DomainImages";
+import { Button } from "../ui/button";
+
+export default function DomainDetailPage() {
+  const { id } = useParams();
+  const [domain, setDomain] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("general");
+
+  useEffect(() => {
+    async function fetchDomain() {
+      try {
+        setLoading(true);
+        console.log('Fetching domain with ID:', id);
+        const data = await getDomainsById(id);
+        console.log('Domain data received:', data);
+        setDomain(data);
+      } catch (error) {
+        console.error("Error fetching domain:", error);
+        setError(error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (id) {
+      fetchDomain();
+    }
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error || !domain) {
+    return (
+      <div className="mx-auto max-w-md rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-center">
+        <AlertCircle className="mx-auto h-10 w-10 text-destructive" />
+        <h2 className="mt-4 text-xl font-bold text-destructive">Error Loading Domain</h2>
+        <p className="mt-2 text-muted-foreground">
+          {error?.message || "Domain not found or failed to load."}
+        </p>
+        <button
+          onClick={() => navigate("/domains")}
+          className="mt-4 rounded-md bg-primary px-4 py-2 text-primary-foreground"
+        >
+          Return to Domains List
+        </button>
+      </div>
+    );
+  }
+
+  // Get domain name from various possible fields
+  const domainName = domain.domainName || domain.domain || domain.url || domain.name || "Unknown Domain";
+  
+  // Determine if certain data sections exist for tab display
+  const hasPodcasts = domain.podcasts?.episodes?.length > 0 || domain.podcasts?.feeds?.length > 0;
+  const hasBlog = domain.blog?.articles?.length > 0 || domain.blog?.hasBlog === true;
+  const hasStructure = domain.pages?.length > 0 || domain.site_structure;
+  const hasAiAnalysis = domain.aiAnalysis || domain.brandAnalysis;
+  const hasSocialProfiles = domain.opengraph && domain.opengraph.filter(item => item.isSocialProfile || item.type === 'social_profile').length > 0;
+  
+  // Determine if images are available
+  const hasImages = domain.media?.images?.all?.length > 0 || 
+                   (domain.media?.images && Object.keys(domain.media.images).some(key => 
+                     Array.isArray(domain.media.images[key]) && domain.media.images[key].length > 0
+                   ));
+
+  const tabs = [
+    {
+      id: "general",
+      label: "General Info",
+      icon: Globe,
+      content: <DomainGeneralInfo domain={domain} />,
+    },
+    {
+      id: "metadata",
+      label: "Metadata",
+      icon: FileText,
+      content: <DomainMetadata domain={domain} />,
+    },
+    {
+      id: "images",
+      label: "Images",
+      icon: ImageIcon,
+      content: <DomainImages domain={domain} />,
+      hidden: !hasImages,
+    },
+    {
+      id: "structure",
+      label: "Site Structure",
+      icon: LayoutGrid,
+      content: <DomainSiteStructure domain={domain} />,
+      hidden: !hasStructure,
+    },
+    {
+      id: "social",
+      label: "Social Profiles",
+      icon: Share2,
+      content: <DomainSocialProfiles domain={domain} />,
+      hidden: !hasSocialProfiles,
+    },
+    {
+      id: "blog",
+      label: "Blog Content",
+      icon: Calendar,
+      content: <DomainBlogContent domain={domain} />,
+      hidden: !hasBlog,
+    },
+    {
+      id: "podcasts",
+      label: "Podcasts",
+      icon: Headphones,
+      content: <DomainPodcasts domain={domain} />,
+      hidden: !hasPodcasts,
+    },
+    {
+      id: "ai-analysis",
+      label: "AI Analysis",
+      icon: Server,
+      content: <DomainAiAnalysis domain={domain} />,
+      hidden: !hasAiAnalysis,
+    },
+  ];
+
+  // Filter out hidden tabs
+  const visibleTabs = tabs.filter(tab => !tab.hidden);
+
+  // Function to get status badge color and text
+  const getStatusBadge = (domain) => {
+    // If we have the limited API data
+    if (domain.isFromApi) {
+      const hasBeenCrawled = domain.lastScraped != null;
+      return {
+        color: hasBeenCrawled ? "bg-green-500 text-white" : "bg-amber-100 text-amber-800",
+        text: hasBeenCrawled ? "Completed" : "Not Crawled",
+      };
+    }
+
+    // Based on status field
+    const status = domain.status || domain.crawlProgress?.status || "unknown";
+    
+    switch (status.toLowerCase()) {
+      case "complete":
+      case "completed":
+        return {
+          color: "bg-green-500 text-white",
+          text: "Completed",
+        };
+      case "in_progress":
+      case "crawling":
+        return {
+          color: "bg-blue-500 text-white",
+          text: "In Progress",
+        };
+      case "failed":
+      case "error":
+        return {
+          color: "bg-red-500 text-white",
+          text: "Failed",
+        };
+      case "pending":
+        return {
+          color: "bg-amber-100 text-amber-800",
+          text: "Pending",
+        };
+      default:
+        return {
+          color: "bg-gray-100 text-gray-800",
+          text: "Unknown",
+        };
+    }
+  };
+
+  return (
+    <div className="h-full">
+      <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-2xl font-semibold tracking-tight">{domainName}</h1>
+          <div className="flex items-center gap-2">
+            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusBadge(domain).color}`}>
+              {getStatusBadge(domain).text}
+            </span>
+            {domain.lastScraped && (
+              <span className="text-xs text-muted-foreground">
+                Last crawled: {new Date(domain.lastScraped).toLocaleDateString()}
+              </span>
+            )}
+          </div>
+        </div>
+        <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
+          Back
+        </Button>
+      </div>
+      
+      <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-[240px_1fr]">
+        <div className="hidden md:block">
+          <nav className="flex flex-col space-y-1">
+            {visibleTabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-muted",
+                  activeTab === tab.id
+                    ? "bg-muted font-medium text-primary"
+                    : "text-muted-foreground"
+                )}
+              >
+                <tab.icon className="h-4 w-4" />
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+        
+        <div className="md:hidden">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="w-full justify-start overflow-auto">
+              {visibleTabs.map((tab) => (
+                <TabsTrigger
+                  key={tab.id}
+                  value={tab.id}
+                  className="flex items-center gap-2"
+                >
+                  <tab.icon className="h-4 w-4" />
+                  <span className="sr-only md:not-sr-only">{tab.label}</span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        </div>
+        
+        <div className="rounded-lg border bg-card shadow-sm">
+          <div className="p-6">
+            {visibleTabs.find(tab => tab.id === activeTab)?.content}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+} 
