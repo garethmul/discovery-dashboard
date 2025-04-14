@@ -11,6 +11,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
+        'react/jsx-runtime': 'react/jsx-runtime.js',
       },
     },
     optimizeDeps: {
@@ -21,7 +22,10 @@ export default defineConfig(({ mode }) => {
         include: []
       },
       outDir: 'dist',
-      assetsDir: 'assets'
+      assetsDir: 'assets',
+      rollupOptions: {
+        external: ['react/jsx-runtime'],
+      },
     },
     server: {
       port: 5176,

@@ -15,6 +15,7 @@ dotenv.config();
 const PORT = process.env.PORT || 3009;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const DIST_DIR = path.join(__dirname, '..', 'dist');
 
 // Create Express app
 const app = express();
@@ -25,6 +26,9 @@ app.use(cors());
 
 // Handle JSON requests
 app.use(express.json());
+
+// Serve static files from the frontend build directory
+app.use(express.static(DIST_DIR));
 
 // Set up Socket.IO
 const io = new Server(httpServer, {
@@ -525,6 +529,6 @@ app.get('/domain-data', async (req, res) => {
 });
 
 // Start the server
-  httpServer.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-  });
+});
