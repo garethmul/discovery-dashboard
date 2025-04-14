@@ -25,27 +25,35 @@ import {
 } from "../ui/select";
 
 export default function DomainListPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Extract search query from URL for initial state
+  const params = new URLSearchParams(location.search);
+  const initialSearchQuery = params.get("search") || "";
+  
   const [domains, setDomains] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
   const [sortField, setSortField] = useState("domain_name");
   const [sortDirection, setSortDirection] = useState("asc");
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(25);
-  const navigate = useNavigate();
-  const location = useLocation();
 
+  // Only need to watch for URL search param changes after initial mount
   useEffect(() => {
-    // Extract search query from URL if present
     const params = new URLSearchParams(location.search);
-    const searchFromUrl = params.get("search");
-    if (searchFromUrl) {
+    const searchFromUrl = params.get("search") || "";
+    
+    // Only update if the search param changed and is different from current state
+    if (searchFromUrl !== searchQuery) {
       setSearchQuery(searchFromUrl);
+      setPage(0); // Reset to first page
     }
-  }, [location.search]);
+  }, [location.search, searchQuery]);
 
   useEffect(() => {
     async function fetchDomains() {
@@ -170,6 +178,23 @@ export default function DomainListPage() {
     return pageNumbers;
   };
 
+  // Update search input handler to sync with URL
+  const handleSearchChange = (e) => {
+    const newSearchValue = e.target.value;
+    setSearchQuery(newSearchValue);
+    
+    // Update the URL with the search parameter (or remove if empty)
+    const params = new URLSearchParams(location.search);
+    if (newSearchValue) {
+      params.set("search", newSearchValue);
+    } else {
+      params.delete("search");
+    }
+    
+    // Replace the current URL to avoid creating multiple history entries for each keystroke
+    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+  };
+
   return (
     <div className="h-full">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -182,7 +207,7 @@ export default function DomainListPage() {
               placeholder="Search domains..."
               className="w-full pl-8 sm:w-[300px]"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchChange}
             />
           </div>
           <Button variant="outline" size="icon">

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -7,8 +7,25 @@ import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
 import { Search, Menu, Home, Globe, Database, List } from 'lucide-react';
 
 export function SidebarLayout() {
-  const [search, setSearch] = useState("");
   const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Initialize search from URL if on domains page
+  const params = new URLSearchParams(location.search);
+  const initialSearch = location.pathname === '/domains' ? params.get("search") || "" : "";
+  
+  const [search, setSearch] = useState(initialSearch);
+  
+  // Update search state when URL changes if on domains page
+  useEffect(() => {
+    if (location.pathname === '/domains') {
+      const params = new URLSearchParams(location.search);
+      const searchFromUrl = params.get("search") || "";
+      if (search !== searchFromUrl) {
+        setSearch(searchFromUrl);
+      }
+    }
+  }, [location.search, location.pathname, search]);
   
   const isActive = (path) => {
     return location.pathname === path;
@@ -40,6 +57,13 @@ export function SidebarLayout() {
       variant: "ghost",
     },
   ];
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (search) {
+      navigate(`/domains?search=${encodeURIComponent(search)}`);
+    }
+  };
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
@@ -110,12 +134,7 @@ export function SidebarLayout() {
             </SheetContent>
           </Sheet>
           <div className="w-full flex-1">
-            <form onSubmit={e => {
-              e.preventDefault();
-              if (search) {
-                window.location.href = `/domains?search=${encodeURIComponent(search)}`;
-              }
-            }}>
+            <form onSubmit={handleSearch}>
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
