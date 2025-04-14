@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getDomainById } from "../../services/api";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 import { cn } from "../../lib/utils";
-import { AlertCircle, Calendar, FileText, Globe, LayoutGrid, MessageSquare, Server, Headphones, Share2, ImageIcon, Palette } from "lucide-react";
+import { AlertCircle, Calendar, FileText, Globe, LayoutGrid, MessageSquare, Server, Headphones, Share2, ImageIcon, Palette, Book } from "lucide-react";
 import DomainGeneralInfo from "./DomainGeneralInfo";
 import DomainMetadata from "./DomainMetadata";
 import DomainSiteStructure from "./DomainSiteStructure";
@@ -13,6 +13,7 @@ import DomainPodcasts from "./DomainPodcasts";
 import DomainSocialProfiles from "./DomainSocialProfiles";
 import DomainImages from "./DomainImages";
 import DomainBrandInfo from "./DomainBrandInfo";
+import DomainBooks from "./DomainBooks";
 import { Button } from "../ui/button";
 
 export default function DomainDetailPage() {
@@ -89,7 +90,8 @@ export default function DomainDetailPage() {
   const hasStructure = domain.pages?.length > 0 || domain.site_structure;
   const hasAiAnalysis = domain.aiAnalysis;
   const hasSocialProfiles = domain.opengraph && domain.opengraph.filter(item => item.isSocialProfile || item.type === 'social_profile').length > 0;
-  const hasBrandData = domain.brandfetch?.data;
+  const hasBrandData = domain.data?.brandfetch;
+  const hasBooks = (domain.data?.books?.isbns?.length > 0 || domain.data?.books?.isbnImages?.length > 0);
   
   // Determine if images are available
   const hasImages = domain.media?.images?.all?.length > 0 || 
@@ -123,6 +125,13 @@ export default function DomainDetailPage() {
       icon: ImageIcon,
       content: <DomainImages domain={domain} />,
       hidden: !hasImages,
+    },
+    {
+      id: "books",
+      label: "Books",
+      icon: Book,
+      content: <DomainBooks domain={domain} />,
+      hidden: !hasBooks,
     },
     {
       id: "structure",

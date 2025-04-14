@@ -250,6 +250,31 @@ app.get('/domain-data/:id', async (req, res) => {
       console.error('Error fetching color schemes:', error);
     }
 
+    // Get ISBN data with error handling
+    let isbnData = [];
+    let isbnImages = [];
+    try {
+      [isbnData] = await pool.query(
+        'SELECT isbn, isbn_type, page_url, context FROM domain_isbn_data WHERE domain_id = ?',
+        [id]
+      );
+      [isbnImages] = await pool.query(
+        'SELECT isbn, image_url, page_url, alt_text FROM domain_isbn_images WHERE domain_id = ?',
+        [id]
+      );
+      console.log(`Found ${isbnData.length} ISBNs and ${isbnImages.length} ISBN images for domain ${id}`);
+    } catch (error) {
+      console.error('Error fetching ISBN data:', error);
+      isbnData = [];
+      isbnImages = [];
+    }
+
+    // Create books object only if we have data
+    const booksData = (isbnData.length > 0 || isbnImages.length > 0) ? {
+      isbns: isbnData,
+      isbnImages: isbnImages
+    } : null;
+
     // Query podcast feeds
     console.log('Querying podcast feeds for domain ID:', id);
     const [podcastFeeds] = await pool.query(
@@ -295,7 +320,8 @@ app.get('/domain-data/:id', async (req, res) => {
         podcasts: {
           feeds: podcastFeeds || [],
           episodes: podcastEpisodes || []
-        }
+        },
+        books: booksData
       }
     };
 
