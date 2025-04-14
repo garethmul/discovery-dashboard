@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import { Server } from 'socket.io';
 import mysql from 'mysql2/promise';
+import { getDatabaseStatus, runDiagnosticQuery } from './src/api/controllers/diagnosticController.js';
 
 // Load environment variables
 dotenv.config();
@@ -44,233 +45,6 @@ const pool = mysql.createPool({
   queueLimit: 0
 });
 
-// Test database connection
-async function testDatabaseConnection() {
-  try {
-    const connection = await pool.getConnection();
-    console.log('Database connection successful!');
-    connection.release();
-    return true;
-  } catch (error) {
-    console.error('Database connection error:', error);
-    return false;
-  }
-}
-
-// Make io globally available
-global.io = io;
-
-// Socket.IO connection handling
-io.on('connection', (socket) => {
-  console.log(`Socket connected: ${socket.id}`);
-
-  // Handle disconnection
-  socket.on('disconnect', () => {
-    console.log(`Socket disconnected: ${socket.id}`);
-  });
-
-  // Join a job room to receive updates for a specific job
-  socket.on('join-job', (jobId) => {
-    socket.join(`job-${jobId}`);
-    console.log(`Socket ${socket.id} joined room for job ${jobId}`);
-  });
-
-  // Leave a job room
-  socket.on('leave-job', (jobId) => {
-    socket.leave(`job-${jobId}`);
-    console.log(`Socket ${socket.id} left room for job ${jobId}`);
-  });
-});
-
-// Middleware
-app.use(cors({
-  origin: ['http://localhost:5176', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
-  credentials: true
-}));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Static files
-app.use(express.static(path.join(__dirname, '../../public')));
-
-// Config endpoint
-app.get('/config', (req, res) => {
-  res.json({
-    scraperApiKey: process.env.API_KEY || 'test-api-key-123'
-  });
-});
-
-// Health check endpoint
-app.get('/health-check', (req, res) => {
-  res.json({
-    status: 'UP',
-    timestamp: new Date().toISOString()
-  });
-});
-
-// Alternative health endpoint
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'UP',
-    timestamp: new Date().toISOString()
-  });
-});
-
-// API Routes with real database connections
-// List all domains
-app.get('/domain-data', async (req, res) => {
-  try {
-    const { search, limit = 50, offset = 0 } = req.query;
-    
-    console.log('Received request for domain-data with params:', { search, limit, offset });
-    
-    // Use domain_info table with correct column names
-    let query = 'SELECT di.id, di.domain as domain_name, di.status, di.last_updated as last_scraped_at, di.data FROM domain_info di';
-    let params = [];
-    
-    if (search) {
-      query += ' WHERE di.domain LIKE ?';
-      params.push(`%${search}%`);
-    }
-    
-    query += ' ORDER BY di.last_updated DESC LIMIT ? OFFSET ?';
-    params.push(Number(limit), Number(offset));
-    
-    console.log('Executing SQL query:', query);
-    console.log('With parameters:', params);
-    
-    const [rows] = await pool.query(query, params);
-    console.log(`Found ${rows.length} domains in database:`, rows.slice(0, 3));
-    
-    // Get additional data for each domain
-    const domainsWithData = await Promise.all(rows.map(async (domain) => {
-      try {
-        // Get domain opengraph data
-        const [opengraphRows] = await pool.query(
-          'SELECT * FROM domain_opengraph WHERE domain_id = ?',
-          [domain.id]
-        );
-        console.log(`Found ${opengraphRows.length} opengraph rows for domain ${domain.id}`);
-        
-        // Get domain images
-        const [imageRows] = await pool.query(
-          'SELECT * FROM domain_images WHERE domain_id = ? LIMIT 10',
-          [domain.id]
-        );
-        console.log(`Found ${imageRows.length} image rows for domain ${domain.id}`);
-        
-        // Parse the JSON data field if it exists
-        let metadataFromData = {};
-        if (domain.data && typeof domain.data === 'string') {
-          try {
-            metadataFromData = JSON.parse(domain.data);
-          } catch (parseError) {
-            console.error(`Error parsing JSON data for domain ${domain.id}:`, parseError);
-          }
-        } else if (domain.data && typeof domain.data === 'object') {
-          metadataFromData = domain.data;
-        }
-        
-        // Delete the data field since we've extracted what we need
-        delete domain.data;
-        
-        return {
-          ...domain,
-          data: {
-            metadata: {
-              title: metadataFromData.title || '',
-              description: metadataFromData.description || '',
-              logoUrl: metadataFromData.logoUrl || ''
-            },
-            opengraph: opengraphRows || [],
-            media: {
-              images: {
-                all: imageRows || []
-              }
-            }
-          }
-        };
-      } catch (error) {
-        console.error(`Error fetching data for domain ${domain.id}:`, error);
-        return domain;
-      }
-    }));
-    
-    console.log('Returning domain data to client, first domain sample:', JSON.stringify(domainsWithData[0]).substring(0, 300) + '...');
-    res.json(domainsWithData);
-  } catch (error) {
-    console.error('Error fetching domains:', error);
-    console.error('Error details:', error.message, error.stack);
-    
-    // Fall back to mock data if database query fails
-    console.warn('Database query failed, using mock data instead');
-    const mockDomains = [
-      {
-        id: '1',
-        domain_name: 'example.com (MOCK DATA)',
-        status: 'complete',
-        last_scraped_at: new Date(Date.now() - 3600000).toISOString(),
-        data: {
-          metadata: {
-            title: 'Example Domain',
-            description: 'This domain is for use in illustrative examples in documents.'
-          },
-          opengraph: [
-            {
-              url: 'https://facebook.com/example',
-              title: 'Facebook',
-              type: 'social_profile',
-              platform: 'Facebook'
-            },
-            {
-              url: 'https://twitter.com/example',
-              title: 'Twitter',
-              type: 'social_profile',
-              platform: 'Twitter'
-            }
-          ]
-        }
-      },
-      {
-        id: '2',
-        domain_name: 'test-site.org (MOCK DATA)',
-        status: 'in_progress',
-        last_scraped_at: new Date(Date.now() - 7200000).toISOString(),
-        data: {
-          metadata: {
-            title: 'Test Website',
-            description: 'A website for testing purposes'
-          }
-        }
-      },
-      {
-        id: '3',
-        domain_name: 'sample-blog.net (MOCK DATA)',
-        status: 'failed',
-        last_scraped_at: null,
-        data: {
-          metadata: {
-            title: 'Sample Blog',
-            description: 'A blog with sample content'
-          },
-          opengraph: [
-            {
-              url: 'https://instagram.com/sample-blog',
-              title: 'Instagram',
-              type: 'social_profile',
-              platform: 'Instagram'
-            }
-          ]
-        }
-      }
-    ];
-    
-    res.json(mockDomains);
-  }
-});
-
 // Get domain details by ID
 app.get('/domain-data/:id', async (req, res) => {
   try {
@@ -278,12 +52,16 @@ app.get('/domain-data/:id', async (req, res) => {
     console.log(`Fetching domain details for ID: ${id}`);
     
     // Get basic domain information with correct column names
-    const [domainRows] = await pool.query(
-      'SELECT di.id, di.domain as domain_name, di.status, di.last_updated as last_scraped_at, di.data FROM domain_info di WHERE di.id = ?',
-      [id]
-    );
+    const query = 'SELECT di.id, di.domain as domain_name, di.status, di.last_updated as last_scraped_at, di.data, di.ai_analysis FROM domain_info di WHERE di.id = ?';
+    console.log('Executing query:', query);
+    console.log('With parameters:', [id]);
+    
+    const [domainRows] = await pool.query(query, [id]);
     
     console.log(`Found ${domainRows.length} domain rows for ID ${id}`);
+    if (domainRows.length > 0) {
+      console.log('Raw domain row:', JSON.stringify(domainRows[0], null, 2));
+    }
     
     if (domainRows.length === 0) {
       console.log(`No domain found with ID ${id}`);
@@ -295,44 +73,185 @@ app.get('/domain-data/:id', async (req, res) => {
     
     // Parse the JSON data field if it exists
     let metadataFromData = {};
+    let aiAnalysisData = {};
+    
     if (domain.data && typeof domain.data === 'string') {
       try {
         metadataFromData = JSON.parse(domain.data);
         console.log('Parsed metadata:', JSON.stringify(metadataFromData, null, 2));
       } catch (parseError) {
         console.error(`Error parsing JSON data for domain ${domain.id}:`, parseError);
+        console.error('Raw data field:', domain.data);
       }
     } else if (domain.data && typeof domain.data === 'object') {
       metadataFromData = domain.data;
       console.log('Using object metadata:', JSON.stringify(metadataFromData, null, 2));
     }
+
+    // Parse the AI analysis field if it exists
+    console.log('Raw AI analysis field:', domain.ai_analysis);
+    if (domain.ai_analysis && typeof domain.ai_analysis === 'string') {
+      try {
+        aiAnalysisData = JSON.parse(domain.ai_analysis);
+        console.log('Parsed AI analysis:', JSON.stringify(aiAnalysisData, null, 2));
+      } catch (parseError) {
+        console.error(`Error parsing AI analysis for domain ${domain.id}:`, parseError);
+        console.error('Raw AI analysis field:', domain.ai_analysis);
+      }
+    } else if (domain.ai_analysis && typeof domain.ai_analysis === 'object') {
+      aiAnalysisData = domain.ai_analysis;
+      console.log('Using object AI analysis:', JSON.stringify(aiAnalysisData, null, 2));
+    }
     
-    // Delete the data field since we've extracted what we need
+    // Delete the raw fields since we've extracted what we need
     delete domain.data;
+    delete domain.ai_analysis;
     
-    // Get domain pages
-    const [pageRows] = await pool.query(
-      'SELECT url, title, status_code as statusCode FROM domain_pages WHERE domain_id = ?',
-      [id]
-    );
-    console.log(`Found ${pageRows.length} pages for domain ${id}`);
+    // Get domain pages with error handling
+    let pageRows = [];
+    try {
+      [pageRows] = await pool.query(
+        'SELECT url, title, status_code as statusCode FROM domain_pages WHERE domain_id = ?',
+        [id]
+      );
+      console.log(`Found ${pageRows.length} pages for domain ${id}`);
+    } catch (error) {
+      console.error('Error fetching pages:', error);
+    }
     
-    // Get domain opengraph data
-    const [opengraphRows] = await pool.query(
-      'SELECT url, title, type, platform FROM domain_opengraph WHERE domain_id = ?',
-      [id]
-    );
-    console.log(`Found ${opengraphRows.length} opengraph entries for domain ${id}`);
+    // Get domain opengraph data with error handling
+    let opengraphRows = [];
+    try {
+      [opengraphRows] = await pool.query(
+        'SELECT url, title, type, platform FROM domain_opengraph WHERE domain_id = ?',
+        [id]
+      );
+      console.log(`Found ${opengraphRows.length} opengraph entries for domain ${id}`);
+    } catch (error) {
+      console.error('Error fetching opengraph data:', error);
+    }
     
-    // Get domain media
-    const [mediaRows] = await pool.query(
-      'SELECT url, alt_text as alt, category FROM domain_images WHERE domain_id = ?',
-      [id]
-    );
-    console.log(`Found ${mediaRows.length} media entries for domain ${id}`);
-    
-    // Combine all data
-    const fullDomain = {
+    // Get domain media with error handling
+    let mediaRows = [];
+    try {
+      [mediaRows] = await pool.query(
+        'SELECT url, alt_text as alt, category FROM domain_images WHERE domain_id = ?',
+        [id]
+      );
+      console.log(`Found ${mediaRows.length} media entries for domain ${id}`);
+    } catch (error) {
+      console.error('Error fetching media:', error);
+    }
+
+    // Get brand analysis data with error handling
+    let brandRows = [];
+    try {
+      [brandRows] = await pool.query(
+        'SELECT * FROM domain_brand_analysis WHERE domain_id = ?',
+        [id]
+      );
+      console.log(`Found ${brandRows.length} brand analysis entries for domain ${id}`);
+    } catch (error) {
+      console.error('Error fetching brand analysis:', error);
+    }
+
+    // Get Brandfetch data with error handling
+    let brandfetchData = null;
+    try {
+      console.log(`Attempting to fetch Brandfetch data for domain: ${domain.domain_name}`);
+      const [brandfetchRows] = await pool.query(
+        'SELECT * FROM brandfetch_data WHERE domain = ?',
+        [domain.domain_name]
+      );
+      console.log(`Found ${brandfetchRows.length} brandfetch entries for domain ${domain.domain_name}`);
+      
+      if (brandfetchRows.length === 0) {
+        console.log(`No Brandfetch data found for domain: ${domain.domain_name}`);
+      } else {
+        console.log('Brandfetch data found:', JSON.stringify(brandfetchRows[0], null, 2));
+        brandfetchData = brandfetchRows[0];
+      }
+      
+      // Parse the data field if it's a string
+      if (brandfetchData && brandfetchData.data) {
+        try {
+          if (typeof brandfetchData.data === 'string') {
+            brandfetchData.data = JSON.parse(brandfetchData.data);
+          }
+          console.log('Parsed Brandfetch data:', JSON.stringify(brandfetchData.data, null, 2));
+        } catch (parseError) {
+          console.error('Error parsing brandfetch data:', parseError);
+          console.error('Raw data that failed to parse:', brandfetchData.data);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching brandfetch data:', error);
+      console.error('Error details:', error.message);
+      console.error('Error stack:', error.stack);
+    }
+
+    // Get content categories with error handling
+    let categoryRows = [];
+    try {
+      [categoryRows] = await pool.query(
+        'SELECT * FROM domain_content_categories WHERE domain_id = ?',
+        [id]
+      );
+      console.log(`Found ${categoryRows.length} content category entries for domain ${id}`);
+    } catch (error) {
+      console.error('Error fetching content categories:', error);
+    }
+
+    // Get app suggestions with error handling
+    let appRows = [];
+    try {
+      [appRows] = await pool.query(
+        'SELECT * FROM domain_app_suggestions WHERE domain_id = ?',
+        [id]
+      );
+      console.log(`Found ${appRows.length} app suggestion entries for domain ${id}`);
+    } catch (error) {
+      console.error('Error fetching app suggestions:', error);
+    }
+
+    // Get marketing tips with error handling
+    let marketingRows = [];
+    try {
+      [marketingRows] = await pool.query(
+        'SELECT * FROM domain_marketing_tips WHERE domain_id = ?',
+        [id]
+      );
+      console.log(`Found ${marketingRows.length} marketing tip entries for domain ${id}`);
+    } catch (error) {
+      console.error('Error fetching marketing tips:', error);
+    }
+
+    // Get features with error handling
+    let featureRows = [];
+    try {
+      [featureRows] = await pool.query(
+        'SELECT * FROM domain_features WHERE domain_id = ?',
+        [id]
+      );
+      console.log(`Found ${featureRows.length} feature entries for domain ${id}`);
+    } catch (error) {
+      console.error('Error fetching features:', error);
+    }
+
+    // Get color schemes with error handling
+    let colorRows = [];
+    try {
+      [colorRows] = await pool.query(
+        'SELECT * FROM domain_color_schemes WHERE domain_id = ?',
+        [id]
+      );
+      console.log(`Found ${colorRows.length} color scheme entries for domain ${id}`);
+    } catch (error) {
+      console.error('Error fetching color schemes:', error);
+    }
+
+    // Combine all the data into a single response
+    const response = {
       ...domain,
       data: {
         metadata: {
@@ -340,222 +259,62 @@ app.get('/domain-data/:id', async (req, res) => {
           description: metadataFromData.description || '',
           logoUrl: metadataFromData.logoUrl || ''
         },
-        pages: pageRows || [],
         opengraph: opengraphRows || [],
         media: {
           images: {
             all: mediaRows || []
           }
-        }
-      }
-    };
-    
-    console.log('Returning full domain data:', JSON.stringify(fullDomain, null, 2));
-    res.json(fullDomain);
-  } catch (error) {
-    console.error(`Error fetching domain ${req.params.id}:`, error);
-    console.error('Error stack:', error.stack);
-    
-    // Fall back to mock data if database query fails
-    const domain = {
-      id: req.params.id,
-      domain_name: 'example.com (MOCK DATA)',
-      status: 'complete',
-      last_scraped_at: new Date().toISOString(),
-      data: {
-        metadata: {
-          title: 'Example Website',
-          description: 'This is an example website for demonstration purposes',
-          keywords: 'example, demo, test'
         },
-        pages: [
-          { url: 'https://example.com', title: 'Home Page', statusCode: 200 },
-          { url: 'https://example.com/about', title: 'About Us', statusCode: 200 },
-          { url: 'https://example.com/contact', title: 'Contact', statusCode: 200 }
-        ],
-        opengraph: [
-          { url: 'https://facebook.com/example', title: 'Facebook', type: 'social_profile', platform: 'Facebook' },
-          { url: 'https://twitter.com/example', title: 'Twitter', type: 'social_profile', platform: 'Twitter' }
-        ],
-        media: {
-          images: {
-            all: [
-              { url: 'https://example.com/logo.png', alt: 'Logo', category: 'Logo' },
-              { url: 'https://example.com/banner.jpg', alt: 'Banner', category: 'Banner' }
-            ]
-          }
-        }
+        pages: pageRows || [],
+        aiAnalysis: {
+          ...aiAnalysisData,
+          brandAnalysis: brandRows.length > 0 ? brandRows[0] : null,
+          contentCategories: categoryRows || [],
+          appSuggestions: appRows || [],
+          marketingTips: marketingRows || [],
+          features: featureRows || [],
+          colorSchemes: colorRows || []
+        },
+        brandfetch: brandfetchData
       }
     };
-    
-    res.json(domain);
-  }
-});
 
-// Legacy API routes - Keep for backward compatibility
-// List all jobs
-app.get('/api/scrape/jobs', (req, res) => {
-  const { status, limit = 20, offset = 0 } = req.query;
-  
-  // Generate mock jobs
-  const mockJobs = [
-    {
-      jobId: '123e4567-e89b-12d3-a456-426614174000',
-      domain: 'example.com',
-      status: 'complete',
-      progress: 100,
-      message: 'Scrape completed successfully',
-      createdAt: new Date(Date.now() - 3600000).toISOString(),
-      startedAt: new Date(Date.now() - 3500000).toISOString(),
-      completedAt: new Date(Date.now() - 3000000).toISOString()
-    },
-    {
-      jobId: '223e4567-e89b-12d3-a456-426614174001',
-      domain: 'demo-site.org',
-      status: 'complete',
-      progress: 100,
-      message: 'Scrape completed successfully',
-      createdAt: new Date(Date.now() - 7200000).toISOString(),
-      startedAt: new Date(Date.now() - 7100000).toISOString(),
-      completedAt: new Date(Date.now() - 7000000).toISOString()
-    }
-  ];
-  
-  // Filter by status if provided
-  const filteredJobs = status ? mockJobs.filter(job => job.status === status) : mockJobs;
-  
-  res.json({
-    jobs: filteredJobs,
-    count: filteredJobs.length,
-    limit: parseInt(limit),
-    offset: parseInt(offset)
-  });
-});
-
-// Get job results
-app.get('/api/scrape/results/:jobId', (req, res) => {
-  const { jobId } = req.params;
-  
-  res.json({
-    domain: 'example.com',
-    scrapedAt: new Date().toISOString(),
-    general: {
-      siteStructure: {
-        title: 'Example Website',
-        meta: {
-          description: 'This is an example website for demonstration purposes',
-          keywords: 'example, demo, test'
-        }
-      }
-    }
-  });
-});
-
-// Submit new job
-app.post('/api/scrape', (req, res) => {
-  const { domain } = req.body;
-  
-  const jobId = Math.random().toString(36).substring(2, 15) + 
-                Math.random().toString(36).substring(2, 15);
-  
-  // Emit a job update event after a short delay
-  setTimeout(() => {
-    io.emit('job-update', {
-      jobId,
-      domain,
-      status: 'processing',
-      progress: 25,
-      message: 'Discovering pages'
-    });
-    
-    // Complete the job after a few seconds
-    setTimeout(() => {
-      io.emit('job-update', {
-        jobId,
-        domain,
-        status: 'complete',
-        progress: 100,
-        message: 'Scrape completed successfully'
-      });
-    }, 5000);
-  }, 2000);
-  
-  res.status(201).json({
-    jobId,
-    status: 'queued',
-    estimatedTime: '30s'
-  });
-});
-
-// Test database route
-app.get('/test-db', async (req, res) => {
-  try {
-    // First check database connection
-    const connection = await pool.getConnection();
-    
-    // Get the list of tables
-    const [tables] = await connection.query('SHOW TABLES');
-    const tableNames = tables.map(t => Object.values(t)[0]);
-    
-    // Get record counts for important tables
-    const counts = {};
-    for (const table of tableNames) {
-      const [countResult] = await connection.query(`SELECT COUNT(*) as count FROM ${table}`);
-      counts[table] = countResult[0].count;
-    }
-    
-    // Check domain_info table structure
-    let domainInfoColumns = [];
-    if (tableNames.includes('domain_info')) {
-      const [columnsResult] = await connection.query('DESCRIBE domain_info');
-      domainInfoColumns = columnsResult;
-    }
-    
-    // Check the specific domains info
-    let domains = [];
-    if (tableNames.includes('domain_info')) {
-      const [domainsResult] = await connection.query('SELECT * FROM domain_info LIMIT 1');
-      domains = domainsResult;
-    }
-    
-    connection.release();
-    
-    // Return the database information
-    res.json({
-      connected: true,
-      tables: tableNames,
-      recordCounts: counts,
-      domainInfoColumns: domainInfoColumns,
-      sampleDomain: domains[0]
-    });
+    console.log('Sending response:', JSON.stringify(response, null, 2));
+    res.json(response);
   } catch (error) {
-    console.error('Test database error:', error);
-    res.status(500).json({
-      connected: false,
-      error: error.message,
-      stack: error.stack
-    });
+    console.error('Error fetching domain data:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Serve the dashboard for all other routes
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../public', 'index.html'));
+// Add route for getting all domains
+app.get('/domain-data', async (req, res) => {
+  try {
+    const { limit } = req.query;
+    const limitValue = parseInt(limit) || 10;
+
+    console.log(`Fetching all domains with limit: ${limitValue}`);
+    
+    // Get basic domain information with correct column names
+    const query = 'SELECT di.id, di.domain as domain_name, di.status, di.last_updated as last_scraped_at FROM domain_info di ORDER BY di.id LIMIT ?';
+    console.log('Executing query:', query);
+    console.log('With parameters:', [limitValue]);
+    
+    const [domainRows] = await pool.query(query, [limitValue]);
+    
+    console.log(`Found ${domainRows.length} domains`);
+    if (domainRows.length > 0) {
+      console.log('First domain row:', JSON.stringify(domainRows[0], null, 2));
+    }
+
+    res.json(domainRows);
+  } catch (error) {
+    console.error('Error fetching domains:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // Start the server
-(async function startServer() {
-  // Test database connection before starting the server
-  const dbConnected = await testDatabaseConnection();
-  
-  if (dbConnected) {
-    console.log('Database connection successful');
-  } else {
-    console.warn('Database connection failed. Will use mock data for responses.');
-  }
-  
-  httpServer.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Dashboard available at http://localhost:${PORT}`);
-  });
-})(); 
+httpServer.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+}); 

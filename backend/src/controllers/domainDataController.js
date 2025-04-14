@@ -125,6 +125,18 @@ export const getDomainDataById = async (req, res) => {
     logger.debug(`[DEBUG] Raw colors data for domain ID ${id}: ${JSON.stringify(colors)}`);
     logger.debug(`[DEBUG] Raw AI analysis data for domain ID ${id}: ${JSON.stringify(aiAnalysisData)}`);
 
+    logger.info(`[Domain ${id}] Raw AI analysis data:`, {
+      source: aiAnalysisData?._source,
+      hasAiAnalysis: !!aiAnalysisData?.ai_analysis,
+      hasBrandfetch: !!aiAnalysisData?.brandfetch_data,
+      hasFeatures: Array.isArray(aiAnalysisData?.features) && aiAnalysisData.features.length > 0,
+      hasAppSuggestions: !!aiAnalysisData?.appSuggestions,
+      hasContentCategories: Array.isArray(aiAnalysisData?.contentCategories) && aiAnalysisData.contentCategories.length > 0,
+      hasMarketingTips: Array.isArray(aiAnalysisData?.marketingTips) && aiAnalysisData.marketingTips.length > 0,
+      hasAppIdeas: Array.isArray(aiAnalysisData?.appIdeas) && aiAnalysisData.appIdeas.length > 0,
+      fullData: aiAnalysisData
+    });
+
     if (!domainInfo) {
       logger.warn(`[API] Domain info not found for ID: ${id}`);
       return res.status(404).json({ message: `Domain with ID ${id} not found.` });
@@ -313,6 +325,12 @@ export const getDomainDataById = async (req, res) => {
         } : null,
     };
     
+    logger.info(`[Domain ${id}] Processed AI data in response:`, {
+      hasAiAnalysis: !!aggregatedData.aiAnalysis,
+      aiAnalysisKeys: aggregatedData.aiAnalysis ? Object.keys(aggregatedData.aiAnalysis) : [],
+      fullAiData: aggregatedData.aiAnalysis
+    });
+
     // Add debugging information for the response
     aggregatedData._debug = {
         dataAvailability: {
@@ -338,6 +356,12 @@ export const getDomainDataById = async (req, res) => {
         if (Object.keys(aggregatedData.aiAnalysis).length === 0) {
              aggregatedData.aiAnalysis = null;
          }
+        
+        logger.info(`[Domain ${id}] Final AI data after cleanup:`, {
+          hasAiAnalysis: !!aggregatedData.aiAnalysis,
+          aiAnalysisKeys: aggregatedData.aiAnalysis ? Object.keys(aggregatedData.aiAnalysis) : [],
+          fullAiData: aggregatedData.aiAnalysis
+        });
     }
 
     res.status(200).json(aggregatedData);

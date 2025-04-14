@@ -21,16 +21,24 @@ const dbConfig = {
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  ssl: process.env.MYSQL_SSL_CA ? {
-    ca: process.env.MYSQL_SSL_CA
-  } : undefined
+  ssl: {
+    rejectUnauthorized: false
+  }
 };
 
 // Create connection pool
 const pool = mysql.createPool(dbConfig);
 
 // Export getPool function for compatibility
-export const getPool = () => pool;
+export const getPool = (config = {}) => {
+  if (config.ssl) {
+    return mysql.createPool({
+      ...dbConfig,
+      ssl: config.ssl
+    });
+  }
+  return pool;
+};
 
 // Test database connection
 export const testConnection = async () => {

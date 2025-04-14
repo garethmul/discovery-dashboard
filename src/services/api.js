@@ -620,6 +620,14 @@ const normalizeSingleDomain = (domain) => {
     opengraph: domain.opengraph || [],
     // Include media data if available
     media: domain.media || { images: { all: [] } },
+    // Include AI analysis data if available
+    aiAnalysis: domain.aiAnalysis || domain.ai_analysis || null,
+    brandAnalysis: domain.brandAnalysis || domain.brand_analysis || null,
+    contentCategories: domain.contentCategories || domain.content_categories || [],
+    appIdeas: domain.appIdeas || domain.app_ideas || [],
+    appSuggestions: domain.appSuggestions || domain.app_suggestions || {},
+    features: domain.features || [],
+    marketingTips: domain.marketingTips || domain.marketing_tips || [],
     // Add a flag to indicate this is from the API
     isFromApi: true
   };

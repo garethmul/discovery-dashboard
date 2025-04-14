@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getDomainById } from "../../services/api";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 import { cn } from "../../lib/utils";
-import { AlertCircle, Calendar, FileText, Globe, LayoutGrid, MessageSquare, Server, Headphones, Share2, ImageIcon } from "lucide-react";
+import { AlertCircle, Calendar, FileText, Globe, LayoutGrid, MessageSquare, Server, Headphones, Share2, ImageIcon, Briefcase } from "lucide-react";
 import DomainGeneralInfo from "./DomainGeneralInfo";
 import DomainMetadata from "./DomainMetadata";
 import DomainSiteStructure from "./DomainSiteStructure";
@@ -12,6 +12,7 @@ import DomainAiAnalysis from "./DomainAiAnalysis";
 import DomainPodcasts from "./DomainPodcasts";
 import DomainSocialProfiles from "./DomainSocialProfiles";
 import DomainImages from "./DomainImages";
+import DomainBrandInfo from "./DomainBrandInfo";
 import { Button } from "../ui/button";
 
 export default function DomainDetailPage() {
@@ -78,6 +79,7 @@ export default function DomainDetailPage() {
   const hasStructure = domain.pages?.length > 0 || domain.site_structure;
   const hasAiAnalysis = domain.aiAnalysis || domain.brandAnalysis;
   const hasSocialProfiles = domain.opengraph && domain.opengraph.filter(item => item.isSocialProfile || item.type === 'social_profile').length > 0;
+  const hasBrandData = domain.data?.aiAnalysis?.brandfetchData;
   
   // Determine if images are available
   const hasImages = domain.media?.images?.all?.length > 0 || 
@@ -97,6 +99,13 @@ export default function DomainDetailPage() {
       label: "Metadata",
       icon: FileText,
       content: <DomainMetadata domain={domain} />,
+    },
+    {
+      id: "brand",
+      label: "Brand",
+      icon: Briefcase,
+      content: <DomainBrandInfo domain={domain} />,
+      hidden: !hasBrandData,
     },
     {
       id: "images",

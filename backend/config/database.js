@@ -8,7 +8,9 @@ const mysqlConfig = {
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  ssl: process.env.MYSQL_SSL_CA ? { ca: process.env.MYSQL_SSL_CA } : undefined,
+  ssl: {
+    rejectUnauthorized: false // Allow self-signed certificates
+  },
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,

@@ -38,4 +38,47 @@ export const getDatabaseStatus = async (req, res) => {
       error: error.message
     });
   }
+};
+
+/**
+ * Run a custom SQL query for diagnostic purposes
+ * This should only be used in development and testing environments
+ */
+export const runDiagnosticQuery = async (req, res) => {
+  try {
+    // Only allow in development environment
+    if (process.env.NODE_ENV !== 'development') {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Diagnostic queries only allowed in development environment'
+      });
+    }
+
+    const { query } = req.body;
+    
+    if (!query) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Query parameter is required'
+      });
+    }
+
+    logger.info('Diagnostic: Executing custom query');
+    const db = getPool();
+    const [rows] = await db.execute(query);
+    
+    return res.status(200).json({
+      status: 'success',
+      results: rows
+    });
+  } catch (error) {
+    logger.error(`Diagnostic: Query execution error: ${error.message}`);
+    logger.error(`Diagnostic: Error stack: ${error.stack}`);
+    
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to execute query',
+      error: error.message
+    });
+  }
 }; 

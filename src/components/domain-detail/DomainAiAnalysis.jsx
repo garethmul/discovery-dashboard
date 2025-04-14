@@ -1,159 +1,217 @@
 import React from "react";
-import { AlertTriangle, Lightbulb, BarChart, LucideCode, Star, Brain } from "lucide-react";
+import { AlertTriangle, Lightbulb, BarChart, LucideCode, Star, Brain, Palette, Rocket, Megaphone, Target } from "lucide-react";
 
 export default function DomainAiAnalysis({ domain }) {
   // Check multiple possible locations for AI analysis data
-  const aiData = domain?.aiAnalysis || domain?.ai_analysis || domain?.brandAnalysis || domain?.data?.aiAnalysis;
+  const aiData = domain?.data?.aiAnalysis;
+  const brandfetchData = domain?.data?.brandfetch;
   
+  console.log("Domain data:", domain);
   console.log("AI Analysis data:", aiData);
+  console.log("Brandfetch data:", brandfetchData);
   
-  if (!domain || !aiData) {
+  if (!domain || (!aiData && !brandfetchData)) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
         <AlertTriangle className="h-10 w-10 text-muted-foreground" />
-        <h3 className="mt-4 text-lg font-semibold">No AI Analysis Available</h3>
-        <p className="mt-2 text-sm text-muted-foreground">
-          AI analysis has not been generated for this domain.
+        <h3 className="mt-4 text-lg font-semibold">No Analysis Available</h3>
+        <p className="text-sm text-muted-foreground">
+          No analysis data is available for this domain.
         </p>
       </div>
     );
   }
 
-  // Determine if this is a basic text analysis
-  const isRawTextAnalysis = typeof aiData === 'string' || aiData.analysis;
-  
-  // For raw text analysis just display it directly
-  if (isRawTextAnalysis) {
-    const analysisText = typeof aiData === 'string' ? aiData : aiData.analysis;
-    
+  const renderBrandAnalysis = () => {
+    const brandData = brandfetchData?.data || {};
+    const brandAnalysis = aiData?.brandAnalysis || {};
+
     return (
-      <div className="space-y-6">
-        <div className="rounded-lg border">
-          <div className="border-b bg-muted/50 px-4 py-3">
-            <div className="flex items-center gap-2">
-              <Brain className="h-4 w-4" />
-              <h3 className="text-sm font-medium">AI Analysis</h3>
+      <div className="rounded-lg border">
+        <div className="border-b bg-muted/50 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <Target className="h-4 w-4" />
+            <h3 className="text-sm font-medium">Brand Analysis</h3>
+          </div>
+        </div>
+        <div className="p-4 space-y-4">
+          {/* Brandfetch Data */}
+          {brandData.name && (
+            <div className="space-y-1">
+              <h4 className="text-sm font-medium">Brand Name</h4>
+              <p className="text-sm text-muted-foreground">{brandData.name}</p>
             </div>
-          </div>
-          <div className="p-4">
-            <p className="whitespace-pre-line text-sm">{analysisText}</p>
-          </div>
+          )}
+          {brandData.colors?.length > 0 && (
+            <div className="space-y-1">
+              <h4 className="text-sm font-medium">Brand Colors</h4>
+              <div className="flex flex-wrap gap-2">
+                {brandData.colors.map((color, index) => (
+                  <div key={index} className="flex flex-col items-center">
+                    <div 
+                      className="w-8 h-8 rounded border border-border"
+                      style={{ backgroundColor: color.hex }}
+                    />
+                    <span className="text-xs mt-1">{color.type}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {brandData.fonts?.length > 0 && (
+            <div className="space-y-1">
+              <h4 className="text-sm font-medium">Brand Fonts</h4>
+              <div className="space-y-2">
+                {brandData.fonts.map((font, index) => (
+                  <div key={index} className="text-sm text-muted-foreground">
+                    {font.name} ({font.type})
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* AI Brand Analysis */}
+          {Object.entries(brandAnalysis).map(([key, value]) => (
+            <div key={key} className="space-y-1">
+              <h4 className="text-sm font-medium capitalize">{key.replace(/_/g, ' ')}</h4>
+              <p className="text-sm text-muted-foreground">{value}</p>
+            </div>
+          ))}
         </div>
       </div>
     );
-  }
+  };
 
-  // Otherwise use the structured analysis format
-  const analysis = aiData;
-
-  const renderSentimentSection = () => {
-    if (!analysis.sentiment) return null;
-    
-    const { score, label, confidence } = analysis.sentiment;
-    
-    const getSentimentColor = () => {
-      if (label === "positive") return "text-green-500";
-      if (label === "negative") return "text-red-500";
-      return "text-amber-500"; // neutral
-    };
-    
-    const getSentimentEmoji = () => {
-      if (label === "positive") return "😀";
-      if (label === "negative") return "😞";
-      return "😐"; // neutral
-    };
+  const renderFeatures = () => {
+    if (!aiData?.features?.length) return null;
     
     return (
       <div className="rounded-lg border">
         <div className="border-b bg-muted/50 px-4 py-3">
           <div className="flex items-center gap-2">
-            <Lightbulb className="h-4 w-4" />
-            <h3 className="text-sm font-medium">Content Sentiment Analysis</h3>
+            <Target className="h-4 w-4" />
+            <h3 className="text-sm font-medium">Feature Suggestions</h3>
           </div>
         </div>
         <div className="p-4">
-          <div className="flex flex-col items-center justify-center gap-2 text-center">
-            <div className="text-5xl">{getSentimentEmoji()}</div>
-            <div className={`text-xl font-bold capitalize ${getSentimentColor()}`}>
-              {label}
-            </div>
-            <div className="text-sm text-muted-foreground">
-              Sentiment score: {score.toFixed(2)} (Confidence: {(confidence * 100).toFixed(0)}%)
-            </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {aiData.features.map((feature, index) => (
+              <div key={index} className="rounded-lg border p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className={`text-xs font-medium px-2 py-1 rounded-full ${
+                    feature.priority === 'high' ? 'bg-red-100 text-red-700' :
+                    feature.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                    'bg-green-100 text-green-700'
+                  }`}>
+                    {feature.priority}
+                  </div>
+                  <h4 className="font-medium">{feature.name}</h4>
+                </div>
+                <p className="text-sm text-muted-foreground">{feature.description}</p>
+              </div>
+            ))}
           </div>
-          
-          {analysis.sentiment.explanation && (
-            <div className="mt-4">
-              <p className="text-sm">{analysis.sentiment.explanation}</p>
+        </div>
+      </div>
+    );
+  };
+
+  const renderColorSchemes = () => {
+    if (!aiData?.colorSchemes?.length) return null;
+    
+    return (
+      <div className="rounded-lg border">
+        <div className="border-b bg-muted/50 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <Palette className="h-4 w-4" />
+            <h3 className="text-sm font-medium">Color Schemes</h3>
+          </div>
+        </div>
+        <div className="p-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            {aiData.colorSchemes.map((scheme, index) => (
+              <div key={index} className="rounded-lg border p-3 space-y-2">
+                <h4 className="font-medium">{scheme.name}</h4>
+                <div className="flex gap-2">
+                  <div className="flex flex-col items-center">
+                    <div className="w-8 h-8 rounded" style={{ backgroundColor: scheme.primary }}></div>
+                    <span className="text-xs mt-1">Primary</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="w-8 h-8 rounded" style={{ backgroundColor: scheme.secondary }}></div>
+                    <span className="text-xs mt-1">Secondary</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="w-8 h-8 rounded" style={{ backgroundColor: scheme.accent }}></div>
+                    <span className="text-xs mt-1">Accent</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderAppIdeas = () => {
+    if (!aiData?.appIdea1) return null;
+    
+    return (
+      <div className="rounded-lg border">
+        <div className="border-b bg-muted/50 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <Rocket className="h-4 w-4" />
+            <h3 className="text-sm font-medium">App Ideas</h3>
+          </div>
+        </div>
+        <div className="p-4 space-y-4">
+          {aiData.appIdea1 && (
+            <div className="space-y-2">
+              <h4 className="font-medium">{aiData.appIdea1Headline}</h4>
+              <p className="text-sm text-muted-foreground">{aiData.appIdea1}</p>
+            </div>
+          )}
+          {aiData.appIdea2 && (
+            <div className="space-y-2">
+              <h4 className="font-medium">{aiData.appIdea2Headline}</h4>
+              <p className="text-sm text-muted-foreground">{aiData.appIdea2}</p>
+            </div>
+          )}
+          {aiData.appIdea3 && (
+            <div className="space-y-2">
+              <h4 className="font-medium">{aiData.appIdea3Headline}</h4>
+              <p className="text-sm text-muted-foreground">{aiData.appIdea3}</p>
             </div>
           )}
         </div>
       </div>
     );
   };
-  
-  const renderTopicsSection = () => {
-    if (!analysis.topics || analysis.topics.length === 0) return null;
+
+  const renderMarketingTips = () => {
+    if (!aiData.marketingTips || !aiData.marketingTips.length) return null;
     
     return (
       <div className="rounded-lg border">
         <div className="border-b bg-muted/50 px-4 py-3">
           <div className="flex items-center gap-2">
-            <BarChart className="h-4 w-4" />
-            <h3 className="text-sm font-medium">Main Topics</h3>
+            <Megaphone className="h-4 w-4" />
+            <h3 className="text-sm font-medium">Marketing Tips</h3>
           </div>
         </div>
         <div className="p-4">
-          <ul className="space-y-2">
-            {analysis.topics.map((topic, index) => (
-              <li key={index} className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary">
-                  {index + 1}
+          <div className="space-y-3">
+            {aiData.marketingTips.map((tip, index) => (
+              <div key={index} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10">
+                  <Megaphone className="h-3 w-3 text-primary" />
                 </div>
                 <div>
-                  <h4 className="font-medium">{topic.name}</h4>
-                  {topic.relevance && (
-                    <div className="mt-1 flex items-center gap-1">
-                      <div className="h-2 w-full max-w-40 overflow-hidden rounded-full bg-muted">
-                        <div 
-                          className="h-full bg-primary" 
-                          style={{ width: `${topic.relevance * 100}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        {(topic.relevance * 100).toFixed(0)}%
-                      </span>
-                    </div>
-                  )}
+                  <p className="text-sm">{tip.text}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{tip.category}</p>
                 </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    );
-  };
-  
-  const renderKeywordsSection = () => {
-    if (!analysis.keywords || analysis.keywords.length === 0) return null;
-    
-    return (
-      <div className="rounded-lg border">
-        <div className="border-b bg-muted/50 px-4 py-3">
-          <div className="flex items-center gap-2">
-            <Star className="h-4 w-4" />
-            <h3 className="text-sm font-medium">Key Terms</h3>
-          </div>
-        </div>
-        <div className="p-4">
-          <div className="flex flex-wrap gap-2">
-            {analysis.keywords.map((keyword, index) => (
-              <div 
-                key={index}
-                className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary"
-                title={`Relevance: ${(keyword.relevance * 100).toFixed(0)}%`}
-              >
-                {keyword.text}
               </div>
             ))}
           </div>
@@ -162,32 +220,13 @@ export default function DomainAiAnalysis({ domain }) {
     );
   };
   
-  const renderSummarySection = () => {
-    if (!analysis.summary) return null;
-    
-    return (
-      <div className="rounded-lg border">
-        <div className="border-b bg-muted/50 px-4 py-3">
-          <div className="flex items-center gap-2">
-            <LucideCode className="h-4 w-4" />
-            <h3 className="text-sm font-medium">Content Summary</h3>
-          </div>
-        </div>
-        <div className="p-4">
-          <p className="text-sm">{analysis.summary}</p>
-        </div>
-      </div>
-    );
-  };
-  
   return (
     <div className="space-y-6">
-      {renderSentimentSection()}
-      {renderSummarySection()}
-      <div className="grid gap-6 md:grid-cols-2">
-        {renderTopicsSection()}
-        {renderKeywordsSection()}
-      </div>
+      {renderBrandAnalysis()}
+      {renderFeatures()}
+      {renderColorSchemes()}
+      {renderAppIdeas()}
+      {renderMarketingTips()}
     </div>
   );
 } 
