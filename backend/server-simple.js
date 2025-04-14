@@ -41,6 +41,16 @@ const io = new Server(httpServer, {
 });
 
 // Database connection pool
+console.log('Creating database pool with config:', {
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  user: process.env.DB_USER,
+  database: process.env.DB_NAME,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
+
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
@@ -55,6 +65,18 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0
 });
+
+// Test database connection on startup
+(async () => {
+  try {
+    console.log('Testing database connection...');
+    const connection = await pool.getConnection();
+    console.log('Successfully connected to database');
+    connection.release();
+  } catch (error) {
+    console.error('Error connecting to database:', error);
+  }
+})();
 
 // Create API router for /api routes
 const apiRouter = express.Router();
@@ -538,14 +560,18 @@ apiRouter.get('/domain-data', async (req, res) => {
 // Health check endpoint
 apiRouter.get('/health-check', async (req, res) => {
   try {
+    console.log('Health check requested, testing database connection...');
     // Check database connection
     let dbStatus = { status: 'unknown' };
     try {
       // Try to execute a simple query to check database connection
+      console.log('Executing test query...');
       const [rows] = await pool.query('SELECT 1');
+      console.log('Database test query successful:', rows);
       dbStatus = {
         status: 'connected',
-        message: 'Database connection is working'
+        message: 'Database connection is working',
+        test_result: rows
       };
     } catch (dbError) {
       console.error('Database health check error:', dbError);
@@ -556,13 +582,15 @@ apiRouter.get('/health-check', async (req, res) => {
       };
     }
     
-    res.json({
+    const response = {
       status: 'ok',
       timestamp: new Date().toISOString(),
       database: dbStatus,
       environment: process.env.NODE_ENV || 'development',
       version: process.env.npm_package_version || '1.0.0'
-    });
+    };
+    console.log('Health check response:', response);
+    res.json(response);
   } catch (error) {
     console.error('Health check error:', error);
     res.status(500).json({
