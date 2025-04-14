@@ -12,10 +12,12 @@ export default defineConfig(({ mode }) => {
       alias: {
         '@': path.resolve(__dirname, './src'),
         'react/jsx-runtime': 'react/jsx-runtime.js',
+        'react/jsx-dev-runtime': 'react/jsx-dev-runtime.js'
       },
     },
     optimizeDeps: {
-      exclude: ['@emotion/react', '@emotion/styled', '@mui/material']
+      exclude: ['@emotion/react', '@emotion/styled', '@mui/material'],
+      include: ['react', 'react-dom', 'react/jsx-runtime']
     },
     build: {
       outDir: 'dist',
@@ -29,7 +31,9 @@ export default defineConfig(({ mode }) => {
         },
       },
       commonjsOptions: {
-        esmExternals: true,
+        include: [/node_modules/],
+        extensions: ['.js', '.cjs', '.jsx'],
+        transformMixedEsModules: true
       },
       assetsDir: 'assets',
     },
