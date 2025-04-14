@@ -7,6 +7,7 @@ import cors from 'cors';
 import { Server } from 'socket.io';
 import mysql from 'mysql2/promise';
 import { getDatabaseStatus, runDiagnosticQuery } from './src/api/controllers/diagnosticController.js';
+import authMiddleware from './src/utils/authMiddleware.js';
 
 // Load environment variables
 dotenv.config();
@@ -57,6 +58,9 @@ const pool = mysql.createPool({
 
 // Create API router for /api routes
 const apiRouter = express.Router();
+
+// Apply authentication middleware to all API routes
+apiRouter.use(authMiddleware);
 
 // Get domain details by ID
 apiRouter.get('/domain-data/:id', async (req, res) => {
