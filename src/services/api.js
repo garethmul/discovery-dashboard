@@ -636,6 +636,8 @@ const normalizeSingleDomain = (domain) => {
     appSuggestions: domain.appSuggestions || domain.app_suggestions || {},
     features: domain.features || [],
     marketingTips: domain.marketingTips || domain.marketing_tips || [],
+    // Include schema markup data if available
+    schemaMarkup: domain.schemaMarkup || [],
     // Add a flag to indicate this is from the API
     isFromApi: true
   };

@@ -6,6 +6,7 @@ import * as domainMediaContentRepo from '../database/repositories/domainMediaCon
 import * as domainSocialPodcastRepo from '../database/repositories/domainSocialPodcastRepository.js';
 import * as domainColorsRepo from '../database/repositories/domainColorsRepository.js';
 import * as domainAiAnalysisRepo from '../database/repositories/domainAiAnalysisRepository.js';
+import domainSchemaMarkupRepo from '../repositories/domainSchemaMarkupRepo.js';
 import logger from '../utils/logger.js';
 import { getPool } from '../database/db.js';
 
@@ -103,7 +104,8 @@ export const getDomainDataById = async (req, res) => {
       mediaContent,
       socialPodcast,
       colors,
-      aiAnalysisData // This holds the potentially multi-table AI data object from the repo
+      aiAnalysisData,
+      schemaMarkup
     ] = await Promise.all([
       domainInfoRepo.findById(id),
       websiteMetadataRepo.findByDomainId(id),
@@ -112,7 +114,8 @@ export const getDomainDataById = async (req, res) => {
       domainMediaContentRepo.findByDomainId(id),
       domainSocialPodcastRepo.findByDomainId(id),
       domainColorsRepo.findByDomainId(id),
-      domainAiAnalysisRepo.findByDomainId(id) // Fetches the combined AI data object
+      domainAiAnalysisRepo.findByDomainId(id),
+      domainSchemaMarkupRepo.findByDomainId(id)
     ]);
 
     // Debug logging to see exactly what data is returned from each repository
@@ -124,6 +127,7 @@ export const getDomainDataById = async (req, res) => {
     logger.debug(`[DEBUG] Raw social podcast data for domain ID ${id}: ${JSON.stringify(socialPodcast)}`);
     logger.debug(`[DEBUG] Raw colors data for domain ID ${id}: ${JSON.stringify(colors)}`);
     logger.debug(`[DEBUG] Raw AI analysis data for domain ID ${id}: ${JSON.stringify(aiAnalysisData)}`);
+    logger.debug(`[DEBUG] Raw schema markup for domain ID ${id}: ${JSON.stringify(schemaMarkup)}`);
 
     logger.info(`[Domain ${id}] Raw AI analysis data:`, {
       source: aiAnalysisData?._source,
@@ -323,6 +327,8 @@ export const getDomainDataById = async (req, res) => {
                     safeJsonParse(aiAnalysisData.marketingTips.tips) : aiAnalysisData.marketingTips
             } : {})
         } : null,
+
+      schemaMarkup: schemaMarkup || [],
     };
     
     logger.info(`[Domain ${id}] Processed AI data in response:`, {
@@ -341,7 +347,8 @@ export const getDomainDataById = async (req, res) => {
             mediaContent: !!mediaContent,
           socialPodcast: !!socialPodcast,
             colors: !!colors,
-            aiAnalysisData: !!aiAnalysisData
+            aiAnalysisData: !!aiAnalysisData,
+            schemaMarkup: !!schemaMarkup && schemaMarkup.length > 0
         }
     };
 

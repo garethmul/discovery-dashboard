@@ -291,42 +291,151 @@ app.get('/domain-data/:id', async (req, res) => {
     );
     console.log('Found podcast episodes:', podcastEpisodes);
 
-    // Combine all the data into a single response
-    const response = {
-      ...domain,
-      data: {
-        metadata: {
-          title: metadataFromData.title || '',
-          description: metadataFromData.description || '',
-          logoUrl: metadataFromData.logoUrl || ''
-        },
-        opengraph: opengraphRows || [],
-        media: {
-          images: {
-            all: mediaRows || []
-          }
-        },
-        pages: pageRows || [],
-        aiAnalysis: {
-          ...aiAnalysisData,
-          brandAnalysis: brandRows.length > 0 ? brandRows[0] : null,
-          contentCategories: categoryRows || [],
-          appSuggestions: appRows || [],
-          marketingTips: marketingRows || [],
-          features: featureRows || [],
-          colorSchemes: colorRows || []
-        },
-        brandfetch: brandfetchData,
-        podcasts: {
-          feeds: podcastFeeds || [],
-          episodes: podcastEpisodes || []
-        },
-        books: booksData
-      }
-    };
+    // Get schema markup data for the domain
+    console.log('Executing schema markup query for domain ID:', id);
+    const schemaMarkupQuery = `
+      SELECT 
+        id,
+        domain_id,
+        page_id,
+        url,
+        schema_type,
+        schema_context,
+        markup_format,
+        markup_data,
+        parent_type,
+        created_at
+      FROM domain_schema_markup
+      WHERE domain_id = ?
+    `;
+    console.log('Schema markup query:', schemaMarkupQuery);
+    
+    try {
+      const [schemaMarkupRows] = await pool.query(schemaMarkupQuery, [id]);
+      console.log('Found schema markup rows:', schemaMarkupRows.length);
+      console.log('Sample schema markup row:', schemaMarkupRows.length > 0 ? JSON.stringify(schemaMarkupRows[0]) : 'No rows found');
+      
+      // Transform schema markup data to a client-friendly format
+      const schemaMarkup = schemaMarkupRows.map(row => {
+        // Parse JSON fields only if they are strings
+        let parsedMarkupData = null;
+        let parsedSchemaContext = null;
 
-    console.log('Sending response:', JSON.stringify(response, null, 2));
-    res.json(response);
+        try {
+          if (row.markup_data && typeof row.markup_data === 'string') {
+            parsedMarkupData = JSON.parse(row.markup_data);
+          } else if (row.markup_data && typeof row.markup_data === 'object') {
+            parsedMarkupData = row.markup_data;
+          }
+        } catch (error) {
+          console.error('Error parsing markup_data:', error);
+          parsedMarkupData = null;
+        }
+
+        try {
+          if (row.schema_context && typeof row.schema_context === 'string') {
+            parsedSchemaContext = JSON.parse(row.schema_context);
+          } else if (row.schema_context && typeof row.schema_context === 'object') {
+            parsedSchemaContext = row.schema_context;
+          }
+        } catch (error) {
+          console.error('Error parsing schema_context:', error);
+          parsedSchemaContext = null;
+        }
+
+        return {
+          id: row.id,
+          pageId: row.page_id,
+          pageUrl: row.url,
+          schemaType: row.schema_type,
+          markupFormat: row.markup_format,
+          markupData: parsedMarkupData,
+          schemaContext: parsedSchemaContext,
+          parentType: row.parent_type,
+          createdAt: row.created_at
+        };
+      });
+      
+      console.log('Transformed schema markup:', schemaMarkup.length);
+      
+      // Combine all the data into a single response
+      const response = {
+        ...domain,
+        data: {
+          metadata: {
+            title: metadataFromData.title || '',
+            description: metadataFromData.description || '',
+            logoUrl: metadataFromData.logoUrl || ''
+          },
+          opengraph: opengraphRows || [],
+          media: {
+            images: {
+              all: mediaRows || []
+            }
+          },
+          pages: pageRows || [],
+          schemaMarkup: schemaMarkup || [],
+          aiAnalysis: {
+            ...aiAnalysisData,
+            brandAnalysis: brandRows.length > 0 ? brandRows[0] : null,
+            contentCategories: categoryRows || [],
+            appSuggestions: appRows || [],
+            marketingTips: marketingRows || [],
+            features: featureRows || [],
+            colorSchemes: colorRows || []
+          },
+          brandfetch: brandfetchData,
+          podcasts: {
+            feeds: podcastFeeds || [],
+            episodes: podcastEpisodes || []
+          },
+          books: booksData
+        }
+      };
+
+      console.log('Sending response:', JSON.stringify(response, null, 2));
+      res.json(response);
+    } catch (error) {
+      console.error('Error fetching schema markup:', error);
+      
+      // Combine all the data into a single response without schema markup
+      const response = {
+        ...domain,
+        data: {
+          metadata: {
+            title: metadataFromData.title || '',
+            description: metadataFromData.description || '',
+            logoUrl: metadataFromData.logoUrl || ''
+          },
+          opengraph: opengraphRows || [],
+          media: {
+            images: {
+              all: mediaRows || []
+            }
+          },
+          pages: pageRows || [],
+          schemaMarkup: [], // Empty schema markup on error
+          aiAnalysis: {
+            ...aiAnalysisData,
+            brandAnalysis: brandRows.length > 0 ? brandRows[0] : null,
+            contentCategories: categoryRows || [],
+            appSuggestions: appRows || [],
+            marketingTips: marketingRows || [],
+            features: featureRows || [],
+            colorSchemes: colorRows || []
+          },
+          brandfetch: brandfetchData,
+          podcasts: {
+            feeds: podcastFeeds || [],
+            episodes: podcastEpisodes || []
+          },
+          books: booksData
+        }
+      };
+
+      console.log('Sending response:', JSON.stringify(response, null, 2));
+      res.json(response);
+    }
   } catch (error) {
     console.error('Error fetching domain data:', error);
     res.status(500).json({ error: 'Internal server error' });
