@@ -22,6 +22,13 @@ export default function DomainPodcasts({ domain }) {
   }
 
   const episodes = domain.data.podcasts.episodes || [];
+  const feeds = domain.data.podcasts.feeds || [];
+
+  // Create a map of feed details for quick lookup
+  const feedDetailsMap = feeds.reduce((acc, feed) => {
+    acc[feed.id] = feed;
+    return acc;
+  }, {});
 
   // Group episodes by feed_id
   const episodesByFeed = episodes.reduce((acc, episode) => {
@@ -66,7 +73,7 @@ export default function DomainPodcasts({ domain }) {
     <div className="space-y-6">
       {Object.entries(episodesByFeed).map(([feedId, feedEpisodes]) => {
         const isExpanded = expandedFeeds.has(feedId);
-        // Use the first episode to get feed information
+        const feedDetails = feedDetailsMap[feedId] || {};
         const firstEpisode = feedEpisodes[0];
         
         return (
@@ -84,19 +91,47 @@ export default function DomainPodcasts({ domain }) {
                     <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   )}
                   {/* Show feed image if available */}
-                  {firstEpisode.image_url && (
+                  {(feedDetails.image_url || firstEpisode.image_url) && (
                     <img
-                      src={firstEpisode.image_url}
-                      alt="Podcast feed"
+                      src={feedDetails.image_url || firstEpisode.image_url}
+                      alt={feedDetails.title || "Podcast feed"}
                       className="h-16 w-16 rounded-md object-cover"
                     />
                   )}
                   <div>
-                    <h4 className="font-medium">Feed {feedId}</h4>
+                    <h4 className="font-medium">{feedDetails.title || `Feed ${feedId}`}</h4>
+                    {feedDetails.author && (
+                      <p className="text-sm text-muted-foreground">by {feedDetails.author}</p>
+                    )}
                     <p className="text-sm text-muted-foreground">
                       {feedEpisodes.length} episodes
                     </p>
                   </div>
+                </div>
+                {feedDetails.description && (
+                  <p className="mt-2 line-clamp-2 text-sm text-muted-foreground ml-10">
+                    {feedDetails.description}
+                  </p>
+                )}
+                <div className="mt-3 flex flex-wrap gap-2 ml-10">
+                  {feedDetails.feed_url && (
+                    <a
+                      href={feedDetails.feed_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs hover:bg-muted/80"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <ExternalLink className="mr-1 h-3 w-3" />
+                      RSS Feed
+                    </a>
+                  )}
+                  {feedDetails.feed_type && (
+                    <div className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs">
+                      <Music className="mr-1 h-3 w-3" />
+                      {feedDetails.feed_type.toUpperCase()}
+                    </div>
+                  )}
                 </div>
               </div>
               <Headphones className="h-5 w-5 text-muted-foreground" />
@@ -105,98 +140,100 @@ export default function DomainPodcasts({ domain }) {
             {/* Episodes Section - Visible when expanded */}
             {isExpanded && (
               <div className="border-t">
-                {feedEpisodes.map((episode) => (
-                  <div
-                    key={episode.id}
-                    className="p-4 hover:bg-muted/50 border-b last:border-b-0"
-                  >
-                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                      <div className="flex gap-4">
-                        {/* Episode Image */}
-                        {episode.image_url && (
-                          <div className="shrink-0">
-                            <img
-                              src={episode.image_url}
-                              alt={episode.title || "Podcast episode"}
-                              className="h-16 w-16 rounded-md object-cover"
-                            />
-                          </div>
-                        )}
-                        
-                        <div className="flex-grow">
-                          <h4 className="font-medium">
-                            {episode.title}
-                          </h4>
-                          
-                          {episode.description && (
-                            <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-                              {episode.description}
-                            </p>
+                <div className="max-h-[500px] overflow-y-auto">
+                  {feedEpisodes.map((episode) => (
+                    <div
+                      key={episode.id}
+                      className="p-4 hover:bg-muted/50 border-b last:border-b-0"
+                    >
+                      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                        <div className="flex gap-4">
+                          {/* Episode Image */}
+                          {episode.image_url && (
+                            <div className="shrink-0">
+                              <img
+                                src={episode.image_url}
+                                alt={episode.title || "Podcast episode"}
+                                className="h-16 w-16 rounded-md object-cover"
+                              />
+                            </div>
                           )}
                           
-                          <div className="mt-2 flex flex-wrap items-center gap-3">
-                            {episode.published_date && (
-                              <div className="inline-flex items-center text-xs text-muted-foreground">
-                                <Calendar className="mr-1 h-3 w-3" />
-                                {new Date(episode.published_date).toLocaleDateString()}
-                              </div>
+                          <div className="flex-grow">
+                            <h4 className="font-medium">
+                              {episode.title}
+                            </h4>
+                            
+                            {episode.description && (
+                              <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                                {episode.description}
+                              </p>
                             )}
                             
-                            {episode.duration && (
-                              <div className="inline-flex items-center text-xs text-muted-foreground">
-                                <Clock className="mr-1 h-3 w-3" />
-                                {episode.duration}
-                              </div>
-                            )}
+                            <div className="mt-2 flex flex-wrap items-center gap-3">
+                              {episode.published_date && (
+                                <div className="inline-flex items-center text-xs text-muted-foreground">
+                                  <Calendar className="mr-1 h-3 w-3" />
+                                  {new Date(episode.published_date).toLocaleDateString()}
+                                </div>
+                              )}
+                              
+                              {episode.duration && (
+                                <div className="inline-flex items-center text-xs text-muted-foreground">
+                                  <Clock className="mr-1 h-3 w-3" />
+                                  {episode.duration}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      
-                      <div className="shrink-0 flex items-center gap-2">
-                        {/* Audio Player */}
-                        {episode.audio_url && (
-                          <>
-                            <button
-                              onClick={() => toggleAudio(episode.audio_url, episode.id)}
-                              className="inline-flex items-center justify-center rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                            >
-                              {playingAudio?.episodeId === episode.id ? (
-                                <>
-                                  <Pause className="mr-1 h-4 w-4" />
-                                  Pause
-                                </>
-                              ) : (
-                                <>
-                                  <Play className="mr-1 h-4 w-4" />
-                                  Play
-                                </>
-                              )}
-                            </button>
-                            <audio
-                              controls
-                              className="w-48 h-8"
-                              src={episode.audio_url}
-                            >
-                              Your browser does not support the audio element.
-                            </audio>
-                          </>
-                        )}
                         
-                        {episode.page_url && (
-                          <a
-                            href={episode.page_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center rounded-md bg-muted px-3 py-1.5 text-sm font-medium hover:bg-muted/80"
-                          >
-                            <ExternalLink className="mr-1 h-4 w-4" />
-                            View
-                          </a>
-                        )}
+                        <div className="shrink-0 flex items-center gap-2">
+                          {/* Audio Player */}
+                          {episode.audio_url && (
+                            <>
+                              <button
+                                onClick={() => toggleAudio(episode.audio_url, episode.id)}
+                                className="inline-flex items-center justify-center rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                              >
+                                {playingAudio?.episodeId === episode.id ? (
+                                  <>
+                                    <Pause className="mr-1 h-4 w-4" />
+                                    Pause
+                                  </>
+                                ) : (
+                                  <>
+                                    <Play className="mr-1 h-4 w-4" />
+                                    Play
+                                  </>
+                                )}
+                              </button>
+                              <audio
+                                controls
+                                className="w-48 h-8"
+                                src={episode.audio_url}
+                              >
+                                Your browser does not support the audio element.
+                              </audio>
+                            </>
+                          )}
+                          
+                          {episode.page_url && (
+                            <a
+                              href={episode.page_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center justify-center rounded-md bg-muted px-3 py-1.5 text-sm font-medium hover:bg-muted/80"
+                            >
+                              <ExternalLink className="mr-1 h-4 w-4" />
+                              View
+                            </a>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
           </div>
