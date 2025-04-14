@@ -2,6 +2,7 @@
   "name": "crawler-dashboard",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "engines": {
     "node": "18.x"
   },
@@ -13,7 +14,7 @@
     "preview": "vite preview",
     "install:backend": "cd backend && npm install",
     "setup": "mkdir -p backend/public && cp -r dist/* backend/public/ || echo 'Build the frontend first'",
-    "heroku-postbuild": "npm install --production=false && npm run build"
+    "heroku-postbuild": "npm install --legacy-peer-deps && npm run build"
   },
   "keywords": [],
   "author": "",
