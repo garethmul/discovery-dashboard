@@ -3,14 +3,12 @@ import { AlertTriangle, Lightbulb, BarChart, LucideCode, Star, Brain, Palette, R
 
 export default function DomainAiAnalysis({ domain }) {
   // Check multiple possible locations for AI analysis data
-  const aiData = domain?.data?.aiAnalysis;
-  const brandfetchData = domain?.data?.brandfetch;
+  const aiData = domain?.aiAnalysis;
   
   console.log("Domain data:", domain);
   console.log("AI Analysis data:", aiData);
-  console.log("Brandfetch data:", brandfetchData);
   
-  if (!domain || (!aiData && !brandfetchData)) {
+  if (!domain || !aiData) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
         <AlertTriangle className="h-10 w-10 text-muted-foreground" />
@@ -23,7 +21,6 @@ export default function DomainAiAnalysis({ domain }) {
   }
 
   const renderBrandAnalysis = () => {
-    const brandData = brandfetchData?.data || {};
     const brandAnalysis = aiData?.brandAnalysis || {};
 
     return (
@@ -35,42 +32,6 @@ export default function DomainAiAnalysis({ domain }) {
           </div>
         </div>
         <div className="p-4 space-y-4">
-          {/* Brandfetch Data */}
-          {brandData.name && (
-            <div className="space-y-1">
-              <h4 className="text-sm font-medium">Brand Name</h4>
-              <p className="text-sm text-muted-foreground">{brandData.name}</p>
-            </div>
-          )}
-          {brandData.colors?.length > 0 && (
-            <div className="space-y-1">
-              <h4 className="text-sm font-medium">Brand Colors</h4>
-              <div className="flex flex-wrap gap-2">
-                {brandData.colors.map((color, index) => (
-                  <div key={index} className="flex flex-col items-center">
-                    <div 
-                      className="w-8 h-8 rounded border border-border"
-                      style={{ backgroundColor: color.hex }}
-                    />
-                    <span className="text-xs mt-1">{color.type}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          {brandData.fonts?.length > 0 && (
-            <div className="space-y-1">
-              <h4 className="text-sm font-medium">Brand Fonts</h4>
-              <div className="space-y-2">
-                {brandData.fonts.map((font, index) => (
-                  <div key={index} className="text-sm text-muted-foreground">
-                    {font.name} ({font.type})
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* AI Brand Analysis */}
           {Object.entries(brandAnalysis).map(([key, value]) => (
             <div key={key} className="space-y-1">

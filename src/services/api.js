@@ -620,6 +620,8 @@ const normalizeSingleDomain = (domain) => {
     opengraph: domain.opengraph || [],
     // Include media data if available
     media: domain.media || { images: { all: [] } },
+    // Include brandfetch data if available
+    brandfetch: domain.brandfetch || null,
     // Include AI analysis data if available
     aiAnalysis: domain.aiAnalysis || domain.ai_analysis || null,
     brandAnalysis: domain.brandAnalysis || domain.brand_analysis || null,
