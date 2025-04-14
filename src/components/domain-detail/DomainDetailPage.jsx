@@ -91,7 +91,7 @@ export default function DomainDetailPage() {
   const hasStructure = domain.pages?.length > 0 || domain.site_structure;
   const hasAiAnalysis = domain.aiAnalysis;
   const hasSocialProfiles = domain.opengraph && domain.opengraph.filter(item => item.isSocialProfile || item.type === 'social_profile').length > 0;
-  const hasBrandData = domain.data?.brandfetch;
+  const hasBrandData = domain?.brandfetch;
   const hasBooks = (domain.data?.books?.isbns?.length > 0 || domain.data?.books?.isbnImages?.length > 0);
   
   // Determine if images are available
@@ -109,12 +109,14 @@ export default function DomainDetailPage() {
       label: "General Info",
       icon: Globe,
       content: <DomainGeneralInfo domain={domain} />,
+      hidden: false,
     },
     {
       id: "metadata",
       label: "Metadata",
       icon: FileText,
       content: <DomainMetadata domain={domain} />,
+      hidden: false,
     },
     {
       id: "schema",
@@ -180,9 +182,6 @@ export default function DomainDetailPage() {
       hidden: !hasAiAnalysis,
     },
   ];
-
-  // Filter out hidden tabs
-  const visibleTabs = tabs.filter(tab => !tab.hidden);
 
   // Function to get status badge color and text
   const getStatusBadge = (domain) => {
@@ -254,44 +253,76 @@ export default function DomainDetailPage() {
       <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-[240px_1fr]">
         <div className="hidden md:block">
           <nav className="flex flex-col space-y-1">
-            {visibleTabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-muted",
-                  activeTab === tab.id
-                    ? "bg-muted font-medium text-primary"
-                    : "text-muted-foreground"
-                )}
-              >
-                <tab.icon className="h-4 w-4" />
-                {tab.label}
-              </button>
-            ))}
+            {tabs.map((tab) => {
+              const hasData = !tab.hidden;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => hasData && setActiveTab(tab.id)}
+                  disabled={!hasData}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all",
+                    activeTab === tab.id
+                      ? "bg-muted font-medium text-primary"
+                      : hasData
+                        ? "text-muted-foreground hover:bg-muted" 
+                        : "text-muted-foreground/40 cursor-not-allowed",
+                  )}
+                >
+                  <tab.icon className={cn("h-4 w-4", !hasData && "opacity-40")} />
+                  {tab.label}
+                  {!hasData && (
+                    <span className="ml-auto text-xs italic text-muted-foreground/40">No data</span>
+                  )}
+                </button>
+              );
+            })}
           </nav>
         </div>
         
         <div className="md:hidden">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full justify-start overflow-auto">
-              {visibleTabs.map((tab) => (
-                <TabsTrigger
-                  key={tab.id}
-                  value={tab.id}
-                  className="flex items-center gap-2"
-                >
-                  <tab.icon className="h-4 w-4" />
-                  <span className="sr-only md:not-sr-only">{tab.label}</span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+          <div className="w-full overflow-auto">
+            <div className="flex items-center space-x-2 border-b pb-2">
+              {tabs.map((tab) => {
+                const hasData = !tab.hidden;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => hasData && setActiveTab(tab.id)}
+                    disabled={!hasData}
+                    className={cn(
+                      "flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-all",
+                      activeTab === tab.id
+                        ? "bg-primary text-primary-foreground"
+                        : hasData
+                          ? "text-foreground hover:bg-muted"
+                          : "text-muted-foreground/40 cursor-not-allowed",
+                    )}
+                  >
+                    <tab.icon className={cn("h-4 w-4", !hasData && "opacity-40")} />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
         
         <div className="rounded-lg border bg-card shadow-sm">
           <div className="p-6">
-            {visibleTabs.find(tab => tab.id === activeTab)?.content}
+            {tabs.map((tab) => (
+              activeTab === tab.id ? (tab.hidden ? (
+                <div className="flex flex-col items-center justify-center p-8 text-center">
+                  <div className="rounded-full bg-muted p-3">
+                    <tab.icon className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <h3 className="mt-4 text-lg font-semibold">No data available</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    This domain doesn't have any {tab.label.toLowerCase()} data available.
+                  </p>
+                </div>
+              ) : tab.content) : null
+            ))}
           </div>
         </div>
       </div>

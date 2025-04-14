@@ -20,6 +20,12 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const httpServer = createServer(app);
 
+// Enable CORS for all routes
+app.use(cors());
+
+// Handle JSON requests
+app.use(express.json());
+
 // Set up Socket.IO
 const io = new Server(httpServer, {
   cors: {
@@ -445,24 +451,73 @@ app.get('/domain-data/:id', async (req, res) => {
 // Add route for getting all domains
 app.get('/domain-data', async (req, res) => {
   try {
-    const { limit } = req.query;
-    const limitValue = parseInt(limit) || 10;
-
-    console.log(`Fetching all domains with limit: ${limitValue}`);
+    // Extract query parameters
+    const page = parseInt(req.query.page) || 0;
+    const limit = parseInt(req.query.limit) || 25;
+    const sortBy = req.query.sortBy || 'domain_name';
+    const sortOrder = (req.query.sortOrder || 'asc').toUpperCase();
+    const search = req.query.search || '';
     
-    // Get basic domain information with correct column names
-    const query = 'SELECT di.id, di.domain as domain_name, di.status, di.last_updated as last_scraped_at FROM domain_info di ORDER BY di.id LIMIT ?';
+    console.log(`Fetching domains with pagination: page=${page}, limit=${limit}, sortBy=${sortBy}, sortOrder=${sortOrder}, search=${search}`);
+    
+    // Validate sort column to prevent SQL injection
+    const validColumns = ['id', 'domain_name', 'status', 'last_scraped_at'];
+    const orderByColumn = validColumns.includes(sortBy) ? sortBy : 'domain_name';
+    
+    // Validate sort direction
+    const orderDirection = sortOrder === 'DESC' ? 'DESC' : 'ASC';
+    
+    // Calculate offset
+    const offset = page * limit;
+    
+    // Build the search condition if search term is provided
+    let searchCondition = '';
+    let queryParams = [];
+    
+    if (search) {
+      searchCondition = 'WHERE di.domain LIKE ?';
+      queryParams.push(`%${search}%`);
+    }
+    
+    // Get total count
+    const countQuery = `SELECT COUNT(*) as total FROM domain_info di ${searchCondition}`;
+    console.log('Executing count query:', countQuery);
+    console.log('With parameters:', queryParams);
+    
+    const [countResult] = await pool.query(countQuery, queryParams);
+    const total = countResult[0].total;
+    
+    // Get domain data with pagination and sorting
+    const query = `
+      SELECT di.id, di.domain as domain_name, di.status, di.last_updated as last_scraped_at,
+             (SELECT COUNT(*) FROM domain_pages dp WHERE dp.domain_id = di.id) as page_count
+      FROM domain_info di 
+      ${searchCondition}
+      ORDER BY ${orderByColumn} ${orderDirection} 
+      LIMIT ? OFFSET ?
+    `;
+    
+    // Add limit and offset to query parameters
+    queryParams.push(limit, offset);
+    
     console.log('Executing query:', query);
-    console.log('With parameters:', [limitValue]);
+    console.log('With parameters:', queryParams);
     
-    const [domainRows] = await pool.query(query, [limitValue]);
+    const [domainRows] = await pool.query(query, queryParams);
     
-    console.log(`Found ${domainRows.length} domains`);
+    console.log(`Found ${domainRows.length} domains out of ${total} total`);
     if (domainRows.length > 0) {
       console.log('First domain row:', JSON.stringify(domainRows[0], null, 2));
     }
 
-    res.json(domainRows);
+    // Return domains with pagination metadata
+    res.json({
+      domains: domainRows,
+      totalCount: total,
+      page: page,
+      limit: limit,
+      totalPages: Math.ceil(total / limit)
+    });
   } catch (error) {
     console.error('Error fetching domains:', error);
     res.status(500).json({ error: 'Internal server error' });

@@ -412,23 +412,77 @@ api.interceptors.response.use(
 /**
  * Get a list of all domains with optional filtering
  * @param {string} search - Optional search term
- * @returns {Promise<Array>} Array of domain objects
+ * @param {number} page - Page number (starting from 0)
+ * @param {number} limit - Number of results per page
+ * @param {string} sortBy - Field to sort by
+ * @param {string} sortOrder - Sort direction ('asc' or 'desc')
+ * @returns {Promise<Object>} Object containing domains array and pagination metadata
  */
-export const getDomains = async (search) => {
+export const getDomains = async (search, page = 0, limit = 25, sortBy = 'domain_name', sortOrder = 'asc') => {
   // If API is unavailable, return mock data immediately
   if (!isApiAvailable) {
     console.warn('API is unavailable, using mock data');
+    let filteredDomains = [...MOCK_DOMAINS];
+    
+    // Apply search filter if provided
     if (search) {
-      return MOCK_DOMAINS.filter(domain => 
+      filteredDomains = filteredDomains.filter(domain => 
         domain.domainName?.toLowerCase().includes(search.toLowerCase()) ||
         domain.domain?.toLowerCase().includes(search.toLowerCase())
       );
     }
-    return MOCK_DOMAINS;
+    
+    // Apply sorting
+    filteredDomains.sort((a, b) => {
+      // Determine which fields to compare based on sortBy
+      let aValue, bValue;
+      
+      switch (sortBy) {
+        case 'domain_name':
+          aValue = a.domainName || a.domain || '';
+          bValue = b.domainName || b.domain || '';
+          break;
+        case 'last_scraped_at':
+          aValue = a.lastScraped || null;
+          bValue = b.lastScraped || null;
+          // Handle null values in date comparison
+          if (aValue === null && bValue === null) return 0;
+          if (aValue === null) return sortOrder === 'asc' ? 1 : -1;
+          if (bValue === null) return sortOrder === 'asc' ? -1 : 1;
+          break;
+        default:
+          aValue = a[sortBy];
+          bValue = b[sortBy];
+      }
+      
+      // Compare values based on sort direction
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortOrder === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+      }
+      
+      return sortOrder === 'asc' ? (aValue > bValue ? 1 : -1) : (bValue > aValue ? 1 : -1);
+    });
+    
+    // Apply pagination
+    const startIndex = page * limit;
+    const paginatedDomains = filteredDomains.slice(startIndex, startIndex + limit);
+    
+    return {
+      domains: paginatedDomains,
+      totalCount: filteredDomains.length,
+      page,
+      limit,
+      totalPages: Math.ceil(filteredDomains.length / limit)
+    };
   }
 
   try {
-    const params = {};
+    const params = {
+      page,
+      limit,
+      sortBy,
+      sortOrder
+    };
     if (search) params.search = search;
     
     // Log the API key being used
@@ -436,38 +490,60 @@ export const getDomains = async (search) => {
     
     const response = await api.get('/domain-data', { params });
     
-    // Add additional data transformation and validation
+    // Handle the new response format with pagination metadata
+    if (response.data && typeof response.data === 'object' && Array.isArray(response.data.domains)) {
+      console.log('Domain data structure example:', response.data.domains.length > 0 ? response.data.domains[0] : 'No domains returned');
+      // Return the entire response which includes domains and pagination data
+      return {
+        domains: normalizeDomainData(response.data.domains),
+        totalCount: response.data.totalCount,
+        page: response.data.page,
+        limit: response.data.limit,
+        totalPages: response.data.totalPages
+      };
+    } 
+    
+    // Handle older API response format (array of domains)
     if (Array.isArray(response.data)) {
-      console.log('Domain data structure example:', response.data.length > 0 ? response.data[0] : 'No domains returned');
-      // Normalize domain data
-      return normalizeDomainData(response.data);
-    } else if (response.data && typeof response.data === 'object') {
-      // If the API returns an object with domains inside another property
-      const possibleArrayKeys = ['domains', 'data', 'items', 'results'];
-      for (const key of possibleArrayKeys) {
-        if (Array.isArray(response.data[key])) {
-          console.log(`Found domains array in response.data.${key}`);
-          // Normalize domain data
-          return normalizeDomainData(response.data[key]);
-        }
-      }
-      // If we have an object but not in expected format, log and return as is
-      console.warn('Unexpected domains response format:', response.data);
-      return normalizeDomainData([response.data]);
+      console.log('Domain data structure example (legacy format):', response.data.length > 0 ? response.data[0] : 'No domains returned');
+      const normalizedDomains = normalizeDomainData(response.data);
+      return {
+        domains: normalizedDomains,
+        totalCount: normalizedDomains.length,
+        page: 0,
+        limit: normalizedDomains.length,
+        totalPages: 1
+      };
     }
     
-    return normalizeDomainData(response.data);
+    console.warn('Unexpected domains response format:', response.data);
+    return {
+      domains: [],
+      totalCount: 0,
+      page: 0,
+      limit: 25,
+      totalPages: 0
+    };
   } catch (error) {
     console.error('Error fetching domains:', error);
     // Return mock data if API fails
     console.warn('Using mock domain data due to API error');
+    let filteredDomains = [...MOCK_DOMAINS];
+    
     if (search) {
-      return MOCK_DOMAINS.filter(domain => 
+      filteredDomains = filteredDomains.filter(domain => 
         domain.domainName?.toLowerCase().includes(search.toLowerCase()) ||
         domain.domain?.toLowerCase().includes(search.toLowerCase())
       );
     }
-    return MOCK_DOMAINS;
+    
+    return {
+      domains: filteredDomains.slice(0, limit),
+      totalCount: filteredDomains.length,
+      page: 0,
+      limit,
+      totalPages: Math.ceil(filteredDomains.length / limit)
+    };
   }
 };
 
@@ -509,8 +585,9 @@ const normalizeDomainData = (domains) => {
         domainName: domain.domain_name,
         status: domain.status || status,
         lastScraped: domain.last_scraped_at,
+        page_count: parseInt(domain.page_count) || 0,
         crawlProgress: {
-          pagesTotal: domain.page_count || 0,
+          pagesTotal: parseInt(domain.page_count) || 0,
           pagesCrawled: domain.pages_crawled || 0,
           status: domain.status || status
         },

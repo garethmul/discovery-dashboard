@@ -44,17 +44,55 @@ export const findByDomainName = async (domainName) => {
 
 /**
  * Finds all domains in the database.
- * @returns {Promise<Array>} - Array of domain info objects.
+ * @param {Object} options - Options for filtering, sorting and pagination
+ * @param {number} options.page - The page number (starting from 0)
+ * @param {number} options.limit - Number of records per page
+ * @param {string} options.sortBy - Column to sort by
+ * @param {string} options.sortOrder - Sort direction ('asc' or 'desc')
+ * @returns {Promise<Object>} - Object containing domain info objects and total count
  */
-export const findAll = async () => {
+export const findAll = async (options = {}) => {
   const db = await getPool();
   try {
-    const [rows] = await db.query('SELECT id, domain_name, last_scraped_at, status FROM domain_info ORDER BY domain_name');
-    return rows;
+    // Default values
+    const page = options.page || 0;
+    const limit = options.limit || 25;
+    const sortBy = options.sortBy || 'domain_name';
+    const sortOrder = options.sortOrder || 'asc';
+    
+    // Calculate offset
+    const offset = page * limit;
+    
+    // Validate sort column to prevent SQL injection
+    const validColumns = ['id', 'domain_name', 'last_scraped_at', 'status'];
+    const orderByColumn = validColumns.includes(sortBy) ? sortBy : 'domain_name';
+    
+    // Validate sort direction
+    const orderDirection = sortOrder.toLowerCase() === 'desc' ? 'DESC' : 'ASC';
+    
+    // Get total count
+    const [countResult] = await db.query('SELECT COUNT(*) as total FROM domain_info');
+    const total = countResult[0].total;
+    
+    // Get paginated results
+    const [rows] = await db.query(
+      `SELECT id, domain_name, last_scraped_at, status FROM domain_info 
+       ORDER BY ${orderByColumn} ${orderDirection} 
+       LIMIT ? OFFSET ?`, 
+      [limit, offset]
+    );
+    
+    return {
+      domains: rows,
+      totalCount: total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit)
+    };
   } catch (error) {
     if (error.code === 'ER_NO_SUCH_TABLE') {
       logger.warn(`domain_info table missing when trying to list all domains: ${error.message}`);
-      return []; // Return empty array gracefully if table doesn't exist
+      return { domains: [], totalCount: 0, page: 0, limit: 25, totalPages: 0 }; // Return empty result if table doesn't exist
     }
     logger.error(`Error fetching all domain_info records: ${error.message}`, error);
     throw error;

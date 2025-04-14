@@ -41,21 +41,47 @@ export const getAllDomains = async (req, res) => {
   logger.info('[API] Fetching list of all domains');
   
   try {
-    const domains = await domainInfoRepo.findAll();
+    // Extract pagination and sorting parameters from request
+    const page = parseInt(req.query.page) || 0;
+    const limit = parseInt(req.query.limit) || 25;
+    const sortBy = req.query.sortBy || 'domain_name';
+    const sortOrder = req.query.sortOrder || 'asc';
+    const search = req.query.search || '';
     
-    // If no domains found, return empty array
-    if (!domains || domains.length === 0) {
-      return res.status(200).json([]);
+    logger.info(`[API] Pagination params: page=${page}, limit=${limit}, sortBy=${sortBy}, sortOrder=${sortOrder}, search=${search}`);
+    
+    // Get domains with pagination and sorting
+    const result = await domainInfoRepo.findAll({
+      page,
+      limit,
+      sortBy,
+      sortOrder
+    });
+    
+    // If no domains found, return empty response with pagination metadata
+    if (!result.domains || result.domains.length === 0) {
+      return res.status(200).json({
+        domains: [],
+        totalCount: 0,
+        page,
+        limit,
+        totalPages: 0
+      });
     }
     
-    // Return simplified list with just id and domain_name
-    const simplifiedList = domains.map(domain => ({
-      id: domain.id,
-      domain_name: domain.domain_name,
-      last_scraped_at: domain.last_scraped_at
-    }));
-    
-    res.status(200).json(simplifiedList);
+    // Return domains with pagination metadata
+    res.status(200).json({
+      domains: result.domains.map(domain => ({
+        id: domain.id,
+        domain_name: domain.domain_name,
+        last_scraped_at: domain.last_scraped_at,
+        status: domain.status
+      })),
+      totalCount: result.totalCount,
+      page: result.page,
+      limit: result.limit,
+      totalPages: result.totalPages
+    });
   } catch (error) {
     logger.error(`[API] Error fetching list of domains: ${error.message}`, error);
     res.status(500).json({ message: 'Failed to fetch domains list.', error: error.message });
