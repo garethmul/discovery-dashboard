@@ -18,14 +18,20 @@ export default defineConfig(({ mode }) => {
       exclude: ['@emotion/react', '@emotion/styled', '@mui/material']
     },
     build: {
-      commonjsOptions: {
-        include: []
-      },
       outDir: 'dist',
-      assetsDir: 'assets',
       rollupOptions: {
-        external: ['react/jsx-runtime'],
+        external: ['react', 'react-dom'],
+        output: {
+          globals: {
+            react: 'React',
+            'react-dom': 'ReactDOM',
+          },
+        },
       },
+      commonjsOptions: {
+        esmExternals: true,
+      },
+      assetsDir: 'assets',
     },
     server: {
       port: 5176,
