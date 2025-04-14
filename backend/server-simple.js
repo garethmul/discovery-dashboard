@@ -536,8 +536,26 @@ apiRouter.get('/domain-data', async (req, res) => {
 });
 
 // Health check endpoint
-apiRouter.get('/health-check', (req, res) => {
-  res.json({ status: 'ok' });
+apiRouter.get('/health-check', async (req, res) => {
+  try {
+    // Check database connection
+    const dbStatus = await getDatabaseStatus(pool);
+    
+    res.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      database: dbStatus,
+      environment: process.env.NODE_ENV || 'development',
+      version: process.env.npm_package_version || '1.0.0'
+    });
+  } catch (error) {
+    console.error('Health check error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 // Mount API router at /api prefix
