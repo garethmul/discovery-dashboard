@@ -17,7 +17,6 @@ export default function DomainMetadata({ domain }) {
   // Check for different metadata sources in the API response
   const metadata = domain.metadata || {};
   const opengraph = domain.opengraph || [];
-  const schemaMarkup = domain.schemaMarkup || [];
   const colors = domain.colors || {};
   const colorSchemes = domain.colorSchemes || [];
   const brandAnalysis = domain.brandAnalysis || {};
@@ -102,22 +101,6 @@ export default function DomainMetadata({ domain }) {
         logoUrl: metadata.logoUrl,
         themeColor: metadata.themeColor
       }, {}, <Info />)}
-
-      {/* Schema.org markup info */}
-      {schemaMarkup && schemaMarkup.length > 0 && (
-        renderListSection(
-          "Schema.org Markup", 
-          schemaMarkup,
-          (item) => item.pageId + item.schemaType,
-          (item) => (
-            <div>
-              <span className="font-medium">{item.schemaType}</span>
-              {item.markupFormat && <span className="ml-2 text-xs text-muted-foreground">({item.markupFormat})</span>}
-            </div>
-          ),
-          <BookOpen />
-        )
-      )}
 
       {/* Open Graph data */}
       {opengraph && opengraph.length > 0 && (

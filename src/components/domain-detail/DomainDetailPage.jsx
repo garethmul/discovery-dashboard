@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getDomainById } from "../../services/api";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 import { cn } from "../../lib/utils";
-import { AlertCircle, Calendar, FileText, Globe, LayoutGrid, MessageSquare, Server, Headphones, Share2, ImageIcon, Palette, Book } from "lucide-react";
+import { AlertCircle, Calendar, FileText, Globe, LayoutGrid, MessageSquare, Server, Headphones, Share2, ImageIcon, Palette, Book, Code } from "lucide-react";
 import DomainGeneralInfo from "./DomainGeneralInfo";
 import DomainMetadata from "./DomainMetadata";
 import DomainSiteStructure from "./DomainSiteStructure";
@@ -14,6 +14,7 @@ import DomainSocialProfiles from "./DomainSocialProfiles";
 import DomainImages from "./DomainImages";
 import DomainBrandInfo from "./DomainBrandInfo";
 import DomainBooks from "./DomainBooks";
+import DomainSchema from "./DomainSchema";
 import { Button } from "../ui/button";
 
 export default function DomainDetailPage() {
@@ -99,6 +100,9 @@ export default function DomainDetailPage() {
                      Array.isArray(domain.media.images[key]) && domain.media.images[key].length > 0
                    ));
 
+  // Add this check to detect if schema markup data is available
+  const hasSchemaMarkup = domain?.schemaMarkup && domain.schemaMarkup.length > 0;
+
   const tabs = [
     {
       id: "general",
@@ -111,6 +115,13 @@ export default function DomainDetailPage() {
       label: "Metadata",
       icon: FileText,
       content: <DomainMetadata domain={domain} />,
+    },
+    {
+      id: "schema",
+      label: "Schema",
+      icon: Code,
+      content: <DomainSchema schemaMarkup={domain?.schemaMarkup || []} />,
+      hidden: !hasSchemaMarkup,
     },
     {
       id: "brand",
