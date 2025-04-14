@@ -55,8 +55,11 @@ const pool = mysql.createPool({
   queueLimit: 0
 });
 
+// Create API router for /api routes
+const apiRouter = express.Router();
+
 // Get domain details by ID
-app.get('/domain-data/:id', async (req, res) => {
+apiRouter.get('/domain-data/:id', async (req, res) => {
   try {
     const { id } = req.params;
     console.log(`Fetching domain details for ID: ${id}`);
@@ -452,8 +455,8 @@ app.get('/domain-data/:id', async (req, res) => {
   }
 });
 
-// Add route for getting all domains
-app.get('/domain-data', async (req, res) => {
+// Get all domains with pagination and filtering
+apiRouter.get('/domain-data', async (req, res) => {
   try {
     // Extract query parameters
     const page = parseInt(req.query.page) || 0;
@@ -526,6 +529,19 @@ app.get('/domain-data', async (req, res) => {
     console.error('Error fetching domains:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+// Health check endpoint
+apiRouter.get('/health-check', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
+// Mount API router at /api prefix
+app.use('/api', apiRouter);
+
+// Catch-all route to serve index.html for client-side routing
+app.get('*', (req, res) => {
+  res.sendFile(path.join(DIST_DIR, 'index.html'));
 });
 
 // Start the server
