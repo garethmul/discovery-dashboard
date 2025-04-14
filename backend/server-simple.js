@@ -539,7 +539,22 @@ apiRouter.get('/domain-data', async (req, res) => {
 apiRouter.get('/health-check', async (req, res) => {
   try {
     // Check database connection
-    const dbStatus = await getDatabaseStatus(pool);
+    let dbStatus = { status: 'unknown' };
+    try {
+      // Try to execute a simple query to check database connection
+      const [rows] = await pool.query('SELECT 1');
+      dbStatus = {
+        status: 'connected',
+        message: 'Database connection is working'
+      };
+    } catch (dbError) {
+      console.error('Database health check error:', dbError);
+      dbStatus = {
+        status: 'error',
+        message: 'Database connection failed',
+        error: dbError.message
+      };
+    }
     
     res.json({
       status: 'ok',
