@@ -138,4 +138,56 @@ Future improvements could include:
 - Crawl job scheduling and monitoring
 - Data export functionality
 - Real-time notifications
-- Advanced search and filtering 
+- Advanced search and filtering
+
+# Discovery Dashboard Database Tables and API Response
+
+## Table Usage Analysis
+
+### 1. Podcast Data (`domain_podcast_feeds` and `domain_podcast_episodes`)
+- These tables are actively used and their data is included in the API response
+- The data appears in the response under `domain.podcasts` or `domain.podcast` with two sub-sections:
+  - `feeds`: Contains podcast feed information
+  - `episodes`: Contains individual episode information
+- The `DomainPodcasts` component handles rendering this data
+
+### 2. RSS Feeds (`domain_rss_feeds`)
+- The table exists but is not explicitly included in the API response
+- RSS feed data is extracted and stored but may not be exposed in the frontend
+
+### 3. Blog Content
+- The code references blog content extraction but no specific `domain_blog_content` table is found in the schema
+- Blog content appears to be handled differently, possibly through a different mechanism
+
+### 4. Schema Markup
+- No `domain_schema_markup` table or related code found in the provided snippets
+- This might be handled in a different part of the codebase
+
+### 5. ISBN Data (`domain_isbn_data` and `domain_isbn_images`)
+- These tables are actively used to store ISBN information and related images
+- The data is extracted by `isbnExtractor` and saved via `saveIsbnData`
+- However, there's no clear evidence of this data being included in the API response
+
+### 6. Social and Podcast Data (`domain_social_podcast`)
+- This table is used to store social links and podcast-related information
+- The data is accessed through `domainSocialPodcastRepository`
+- It appears to be included in the API response, as evidenced by the `socialPodcast` variable in the domain data controller
+
+## API Response Structure
+
+The domain data controller (`domainDataController.js`) aggregates data into a response object that includes:
+- Domain basic info
+- Metadata
+- General info
+- Blog info
+- Media content
+- Social podcast data
+- Colors
+- AI analysis data
+
+## Data Usage Patterns
+
+The data from these tables is used in different ways:
+1. Some data (like podcasts) is directly exposed in the API and has dedicated frontend components
+2. Other data (like ISBN) is stored but may not be directly exposed in the current frontend implementation
+3. Some tables mentioned might not exist or might be handled differently than what's visible in the provided code 

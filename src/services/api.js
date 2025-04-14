@@ -622,6 +622,10 @@ const normalizeSingleDomain = (domain) => {
     media: domain.media || { images: { all: [] } },
     // Include brandfetch data if available
     brandfetch: domain.brandfetch || null,
+    // Include podcast data if available
+    data: {
+      podcasts: domain.data?.podcasts || domain.podcasts || null
+    },
     // Include AI analysis data if available
     aiAnalysis: domain.aiAnalysis || domain.ai_analysis || null,
     brandAnalysis: domain.brandAnalysis || domain.brand_analysis || null,

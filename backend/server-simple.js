@@ -87,7 +87,7 @@ app.get('/domain-data/:id', async (req, res) => {
       metadataFromData = domain.data;
       console.log('Using object metadata:', JSON.stringify(metadataFromData, null, 2));
     }
-
+    
     // Parse the AI analysis field if it exists
     console.log('Raw AI analysis field:', domain.ai_analysis);
     if (domain.ai_analysis && typeof domain.ai_analysis === 'string') {
@@ -111,10 +111,10 @@ app.get('/domain-data/:id', async (req, res) => {
     let pageRows = [];
     try {
       [pageRows] = await pool.query(
-        'SELECT url, title, status_code as statusCode FROM domain_pages WHERE domain_id = ?',
-        [id]
-      );
-      console.log(`Found ${pageRows.length} pages for domain ${id}`);
+      'SELECT url, title, status_code as statusCode FROM domain_pages WHERE domain_id = ?',
+      [id]
+    );
+    console.log(`Found ${pageRows.length} pages for domain ${id}`);
     } catch (error) {
       console.error('Error fetching pages:', error);
     }
@@ -123,10 +123,10 @@ app.get('/domain-data/:id', async (req, res) => {
     let opengraphRows = [];
     try {
       [opengraphRows] = await pool.query(
-        'SELECT url, title, type, platform FROM domain_opengraph WHERE domain_id = ?',
-        [id]
-      );
-      console.log(`Found ${opengraphRows.length} opengraph entries for domain ${id}`);
+      'SELECT url, title, type, platform FROM domain_opengraph WHERE domain_id = ?',
+      [id]
+    );
+    console.log(`Found ${opengraphRows.length} opengraph entries for domain ${id}`);
     } catch (error) {
       console.error('Error fetching opengraph data:', error);
     }
@@ -135,10 +135,10 @@ app.get('/domain-data/:id', async (req, res) => {
     let mediaRows = [];
     try {
       [mediaRows] = await pool.query(
-        'SELECT url, alt_text as alt, category FROM domain_images WHERE domain_id = ?',
-        [id]
-      );
-      console.log(`Found ${mediaRows.length} media entries for domain ${id}`);
+      'SELECT url, alt_text as alt, category FROM domain_images WHERE domain_id = ?',
+      [id]
+    );
+    console.log(`Found ${mediaRows.length} media entries for domain ${id}`);
     } catch (error) {
       console.error('Error fetching media:', error);
     }
@@ -250,6 +250,22 @@ app.get('/domain-data/:id', async (req, res) => {
       console.error('Error fetching color schemes:', error);
     }
 
+    // Query podcast feeds
+    console.log('Querying podcast feeds for domain ID:', id);
+    const [podcastFeeds] = await pool.query(
+      'SELECT * FROM domain_podcast_feeds WHERE domain_id = ?',
+      [id]
+    );
+    console.log('Found podcast feeds:', podcastFeeds);
+
+    // Query podcast episodes
+    console.log('Querying podcast episodes for domain ID:', id);
+    const [podcastEpisodes] = await pool.query(
+      'SELECT * FROM domain_podcast_episodes WHERE domain_id = ?',
+      [id]
+    );
+    console.log('Found podcast episodes:', podcastEpisodes);
+
     // Combine all the data into a single response
     const response = {
       ...domain,
@@ -275,7 +291,11 @@ app.get('/domain-data/:id', async (req, res) => {
           features: featureRows || [],
           colorSchemes: colorRows || []
         },
-        brandfetch: brandfetchData
+        brandfetch: brandfetchData,
+        podcasts: {
+          feeds: podcastFeeds || [],
+          episodes: podcastEpisodes || []
+        }
       }
     };
 
@@ -315,6 +335,6 @@ app.get('/domain-data', async (req, res) => {
 });
 
 // Start the server
-httpServer.listen(PORT, () => {
+  httpServer.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-}); 
+  });

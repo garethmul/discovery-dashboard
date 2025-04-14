@@ -73,8 +73,18 @@ export default function DomainDetailPage() {
   // Get domain name from various possible fields
   const domainName = domain.domainName || domain.domain || domain.url || domain.name || "Unknown Domain";
   
+  // Debug logging for podcast data
+  console.log('Checking podcast data:', {
+    directPodcasts: domain.podcasts,
+    dataPodcasts: domain.data?.podcasts,
+    episodes: domain.data?.podcasts?.episodes?.length,
+    feeds: domain.data?.podcasts?.feeds?.length
+  });
+  
   // Determine if certain data sections exist for tab display
-  const hasPodcasts = domain.podcasts?.episodes?.length > 0 || domain.podcasts?.feeds?.length > 0;
+  const hasPodcasts = domain.data?.podcasts?.episodes?.length > 0 || domain.data?.podcasts?.feeds?.length > 0;
+  console.log('Has podcasts:', hasPodcasts);
+  
   const hasBlog = domain.blog?.articles?.length > 0 || domain.blog?.hasBlog === true;
   const hasStructure = domain.pages?.length > 0 || domain.site_structure;
   const hasAiAnalysis = domain.aiAnalysis;
