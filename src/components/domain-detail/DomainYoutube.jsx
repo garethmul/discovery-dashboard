@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Search, ChevronDown, ChevronUp, ArrowDownUp, Youtube, Clock, Eye, MessageCircle, Calendar, Film } from "lucide-react";
+import { Search, ChevronDown, ChevronUp, ArrowDownUp, Youtube, Clock, Eye, MessageCircle, Calendar, Film, ListVideo, TrendingUp, Clock4, X } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { 
@@ -24,6 +24,20 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "../ui/pagination";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
 
 function formatNumber(num) {
   if (num >= 1000000) {
@@ -62,6 +76,11 @@ export default function DomainYoutube({ domain }) {
   const [sortConfig, setSortConfig] = useState({ field: 'published_at', direction: 'desc' });
   const [filteredVideos, setFilteredVideos] = useState([]);
   const [expandedChannels, setExpandedChannels] = useState([]);
+  const [recentVideos, setRecentVideos] = useState([]);
+  const [popularVideos, setPopularVideos] = useState([]);
+  const [showAllPlaylists, setShowAllPlaylists] = useState(false);
+  const [playlistSearchTerm, setPlaylistSearchTerm] = useState("");
+  const [filteredPlaylists, setFilteredPlaylists] = useState([]);
   
   useEffect(() => {
     async function fetchYoutubeData() {
@@ -72,6 +91,22 @@ export default function DomainYoutube({ domain }) {
         const response = await axios.get(`/api/youtube/${domain.domainId}`);
         setYoutubeData(response.data);
         setFilteredVideos(response.data.videos || []);
+        
+        // Extract recent and popular videos
+        if (response.data.videos && response.data.videos.length > 0) {
+          // Get 5 most recent videos
+          const recent = [...response.data.videos]
+            .sort((a, b) => new Date(b.published_at) - new Date(a.published_at))
+            .slice(0, 5);
+          setRecentVideos(recent);
+          
+          // Get 5 most viewed videos
+          const popular = [...response.data.videos]
+            .sort((a, b) => b.view_count - a.view_count)
+            .slice(0, 5);
+          setPopularVideos(popular);
+        }
+        
         // If there are multiple channels, expand the first one by default
         if (response.data.channels && response.data.channels.length > 0) {
           setExpandedChannels([response.data.channels[0].channel_id]);
@@ -128,6 +163,22 @@ export default function DomainYoutube({ domain }) {
     
     setFilteredVideos(videos);
   }, [youtubeData, searchTerm, sortConfig]);
+  
+  useEffect(() => {
+    if (youtubeData?.playlists) {
+      if (playlistSearchTerm.trim() === "") {
+        setFilteredPlaylists(youtubeData.playlists);
+      } else {
+        const search = playlistSearchTerm.toLowerCase();
+        const filtered = youtubeData.playlists.filter(
+          playlist => 
+            playlist.title?.toLowerCase().includes(search) || 
+            playlist.description?.toLowerCase().includes(search)
+        );
+        setFilteredPlaylists(filtered);
+      }
+    }
+  }, [youtubeData?.playlists, playlistSearchTerm]);
   
   const handleSort = (field) => {
     setSortConfig(prevConfig => ({
@@ -253,6 +304,250 @@ export default function DomainYoutube({ domain }) {
           </AccordionItem>
         ))}
       </Accordion>
+      
+      {/* Playlists section */}
+      {youtubeData.playlists && youtubeData.playlists.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium flex items-center">
+            <ListVideo className="mr-2 h-5 w-5 text-primary" />
+            Playlists ({youtubeData.playlists.length})
+          </h3>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {youtubeData.playlists.slice(0, 6).map((playlist) => (
+              <div 
+                key={playlist.playlist_id}
+                className="flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm"
+              >
+                <div className="p-4">
+                  <h4 className="font-semibold line-clamp-2">{playlist.title}</h4>
+                  <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+                    {playlist.description || "No description available"}
+                  </p>
+                  <div className="mt-3 flex items-center justify-between text-sm">
+                    <span className="flex items-center text-muted-foreground">
+                      <Film className="mr-1 h-4 w-4" />
+                      {playlist.item_count} videos
+                    </span>
+                    <span className="flex items-center text-muted-foreground">
+                      <Calendar className="mr-1 h-4 w-4" />
+                      {new Date(playlist.published_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <a 
+                    href={`https://youtube.com/playlist?list=${playlist.playlist_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 inline-flex items-center text-sm font-medium text-primary"
+                  >
+                    <Youtube className="mr-1 h-4 w-4" />
+                    View Playlist
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+          {youtubeData.playlists.length > 6 && (
+            <div className="flex justify-center">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline">
+                    View All {youtubeData.playlists.length} Playlists
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
+                  <DialogHeader>
+                    <DialogTitle>All Playlists</DialogTitle>
+                    <DialogDescription>
+                      Browse all {youtubeData.playlists.length} playlists from this channel
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="relative my-4 w-full">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="search"
+                      placeholder="Search playlists..."
+                      className="pl-8"
+                      value={playlistSearchTerm}
+                      onChange={(e) => setPlaylistSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    {filteredPlaylists.map((playlist) => (
+                      <div 
+                        key={playlist.playlist_id}
+                        className="flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm"
+                      >
+                        <div className="p-4">
+                          <h4 className="font-semibold">{playlist.title}</h4>
+                          <p className="mt-1 text-sm text-muted-foreground line-clamp-3">
+                            {playlist.description || "No description available"}
+                          </p>
+                          <div className="mt-3 flex items-center justify-between text-sm">
+                            <span className="flex items-center text-muted-foreground">
+                              <Film className="mr-1 h-4 w-4" />
+                              {playlist.item_count} videos
+                            </span>
+                            <span className="flex items-center text-muted-foreground">
+                              <Calendar className="mr-1 h-4 w-4" />
+                              {new Date(playlist.published_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <a 
+                            href={`https://youtube.com/playlist?list=${playlist.playlist_id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-3 inline-flex items-center text-sm font-medium text-primary"
+                          >
+                            <Youtube className="mr-1 h-4 w-4" />
+                            View Playlist
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {filteredPlaylists.length === 0 && (
+                    <div className="flex items-center justify-center py-8 text-center">
+                      <div className="max-w-md rounded-lg border p-6">
+                        <ListVideo className="mx-auto h-10 w-10 text-muted-foreground" />
+                        <h3 className="mt-4 text-lg font-semibold">No playlists found</h3>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          Try adjusting your search criteria.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </DialogContent>
+              </Dialog>
+            </div>
+          )}
+        </div>
+      )}
+      
+      {/* Recent and Popular Videos Tabs */}
+      {(recentVideos.length > 0 || popularVideos.length > 0) && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Featured Videos</h3>
+          <Tabs defaultValue="recent" className="w-full">
+            <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsTrigger value="recent" className="flex items-center">
+                <Clock4 className="mr-2 h-4 w-4" />
+                Recent Videos
+              </TabsTrigger>
+              <TabsTrigger value="popular" className="flex items-center">
+                <TrendingUp className="mr-2 h-4 w-4" />
+                Popular Videos
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="recent" className="mt-4">
+              <div className="space-y-4">
+                {recentVideos.map((video) => (
+                  <div 
+                    key={video.video_id}
+                    className="flex flex-col md:flex-row overflow-hidden rounded-lg border bg-card shadow-sm"
+                  >
+                    <div className="relative h-48 md:h-auto md:w-60 flex-shrink-0">
+                      <img
+                        src={video.thumbnail_high || `https://i.ytimg.com/vi/${video.video_id}/hqdefault.jpg`}
+                        alt={video.title}
+                        className="h-full w-full object-cover"
+                      />
+                      <div className="absolute bottom-2 right-2 rounded bg-black/70 px-1 py-0.5 text-xs text-white">
+                        {formatDuration(video.duration)}
+                      </div>
+                    </div>
+                    <div className="flex flex-col justify-between p-4">
+                      <div>
+                        <h3 className="text-lg font-semibold">
+                          <a 
+                            href={`https://youtube.com/watch?v=${video.video_id}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="hover:text-primary"
+                          >
+                            {video.title}
+                          </a>
+                        </h3>
+                        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                          {video.description}
+                        </p>
+                      </div>
+                      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+                        <span className="flex items-center text-muted-foreground">
+                          <Calendar className="mr-1 h-4 w-4" />
+                          {new Date(video.published_at).toLocaleDateString()}
+                        </span>
+                        <span className="flex items-center text-muted-foreground">
+                          <Eye className="mr-1 h-4 w-4" />
+                          {formatNumber(video.view_count)} views
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="popular" className="mt-4">
+              <div className="space-y-4">
+                {popularVideos.map((video) => (
+                  <div 
+                    key={video.video_id}
+                    className="flex flex-col md:flex-row overflow-hidden rounded-lg border bg-card shadow-sm"
+                  >
+                    <div className="relative h-48 md:h-auto md:w-60 flex-shrink-0">
+                      <img
+                        src={video.thumbnail_high || `https://i.ytimg.com/vi/${video.video_id}/hqdefault.jpg`}
+                        alt={video.title}
+                        className="h-full w-full object-cover"
+                      />
+                      <div className="absolute bottom-2 right-2 rounded bg-black/70 px-1 py-0.5 text-xs text-white">
+                        {formatDuration(video.duration)}
+                      </div>
+                    </div>
+                    <div className="flex flex-col justify-between p-4">
+                      <div>
+                        <h3 className="text-lg font-semibold">
+                          <a 
+                            href={`https://youtube.com/watch?v=${video.video_id}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="hover:text-primary"
+                          >
+                            {video.title}
+                          </a>
+                        </h3>
+                        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                          {video.description}
+                        </p>
+                      </div>
+                      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+                        <span className="flex items-center text-muted-foreground">
+                          <Calendar className="mr-1 h-4 w-4" />
+                          {new Date(video.published_at).toLocaleDateString()}
+                        </span>
+                        <span className="flex items-center text-muted-foreground">
+                          <Eye className="mr-1 h-4 w-4" />
+                          {formatNumber(video.view_count)} views
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      )}
+      
+      {/* All Videos section title */}
+      <div className="flex items-center">
+        <Film className="mr-2 h-5 w-5 text-primary" />
+        <h3 className="text-lg font-medium">All Videos</h3>
+      </div>
       
       {/* Search and filters */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
