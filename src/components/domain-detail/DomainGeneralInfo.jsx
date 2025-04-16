@@ -42,7 +42,7 @@ export default function DomainGeneralInfo({ domain }) {
         return {
           label: 'In Progress',
           color: 'bg-blue-500',
-          message: 'Crawl is currently in progress'
+          message: 'Crawl is currently in progress' 
         };
       case 'failed':
       case 'error':
