@@ -30,14 +30,6 @@ import {
   TabsList,
   TabsTrigger,
 } from "../ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "../ui/dialog";
 
 function formatNumber(num) {
   if (num >= 1000000) {
@@ -312,115 +304,119 @@ export default function DomainYoutube({ domain }) {
             <ListVideo className="mr-2 h-5 w-5 text-primary" />
             Playlists ({youtubeData.playlists.length})
           </h3>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {youtubeData.playlists.slice(0, 6).map((playlist) => (
-              <div 
-                key={playlist.playlist_id}
-                className="flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm"
-              >
-                <div className="p-4">
-                  <h4 className="font-semibold line-clamp-2">{playlist.title}</h4>
-                  <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
-                    {playlist.description || "No description available"}
-                  </p>
-                  <div className="mt-3 flex items-center justify-between text-sm">
-                    <span className="flex items-center text-muted-foreground">
-                      <Film className="mr-1 h-4 w-4" />
-                      {playlist.item_count} videos
-                    </span>
-                    <span className="flex items-center text-muted-foreground">
-                      <Calendar className="mr-1 h-4 w-4" />
-                      {new Date(playlist.published_at).toLocaleDateString()}
-                    </span>
+          
+          {/* Show limited playlists when not expanded */}
+          {!showAllPlaylists && (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {youtubeData.playlists.slice(0, 6).map((playlist) => (
+                <div 
+                  key={playlist.playlist_id}
+                  className="flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm"
+                >
+                  <div className="p-4">
+                    <h4 className="font-semibold line-clamp-2">{playlist.title}</h4>
+                    <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+                      {playlist.description || "No description available"}
+                    </p>
+                    <div className="mt-3 flex items-center justify-between text-sm">
+                      <span className="flex items-center text-muted-foreground">
+                        <Film className="mr-1 h-4 w-4" />
+                        {playlist.item_count} videos
+                      </span>
+                      <span className="flex items-center text-muted-foreground">
+                        <Calendar className="mr-1 h-4 w-4" />
+                        {new Date(playlist.published_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <a 
+                      href={`https://youtube.com/playlist?list=${playlist.playlist_id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 inline-flex items-center text-sm font-medium text-primary"
+                    >
+                      <Youtube className="mr-1 h-4 w-4" />
+                      View Playlist
+                    </a>
                   </div>
-                  <a 
-                    href={`https://youtube.com/playlist?list=${playlist.playlist_id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-3 inline-flex items-center text-sm font-medium text-primary"
-                  >
-                    <Youtube className="mr-1 h-4 w-4" />
-                    View Playlist
-                  </a>
                 </div>
+              ))}
+            </div>
+          )}
+          
+          {/* Show all playlists with search when expanded */}
+          {showAllPlaylists && (
+            <>
+              <div className="relative w-full md:w-72 mb-4">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search playlists..."
+                  className="pl-8"
+                  value={playlistSearchTerm}
+                  onChange={(e) => setPlaylistSearchTerm(e.target.value)}
+                />
               </div>
-            ))}
-          </div>
+              
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {filteredPlaylists.map((playlist) => (
+                  <div 
+                    key={playlist.playlist_id}
+                    className="flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm"
+                  >
+                    <div className="p-4">
+                      <h4 className="font-semibold">{playlist.title}</h4>
+                      <p className="mt-1 text-sm text-muted-foreground line-clamp-3">
+                        {playlist.description || "No description available"}
+                      </p>
+                      <div className="mt-3 flex items-center justify-between text-sm">
+                        <span className="flex items-center text-muted-foreground">
+                          <Film className="mr-1 h-4 w-4" />
+                          {playlist.item_count} videos
+                        </span>
+                        <span className="flex items-center text-muted-foreground">
+                          <Calendar className="mr-1 h-4 w-4" />
+                          {new Date(playlist.published_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <a 
+                        href={`https://youtube.com/playlist?list=${playlist.playlist_id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-3 inline-flex items-center text-sm font-medium text-primary"
+                      >
+                        <Youtube className="mr-1 h-4 w-4" />
+                        View Playlist
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {filteredPlaylists.length === 0 && (
+                <div className="flex items-center justify-center py-8 text-center">
+                  <div className="max-w-md rounded-lg border p-6">
+                    <ListVideo className="mx-auto h-10 w-10 text-muted-foreground" />
+                    <h3 className="mt-4 text-lg font-semibold">No playlists found</h3>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Try adjusting your search criteria.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+          
+          {/* Toggle button */}
           {youtubeData.playlists.length > 6 && (
             <div className="flex justify-center">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="outline">
-                    View All {youtubeData.playlists.length} Playlists
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
-                  <DialogHeader>
-                    <DialogTitle>All Playlists</DialogTitle>
-                    <DialogDescription>
-                      Browse all {youtubeData.playlists.length} playlists from this channel
-                    </DialogDescription>
-                  </DialogHeader>
-                  
-                  <div className="relative my-4 w-full">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="search"
-                      placeholder="Search playlists..."
-                      className="pl-8"
-                      value={playlistSearchTerm}
-                      onChange={(e) => setPlaylistSearchTerm(e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    {filteredPlaylists.map((playlist) => (
-                      <div 
-                        key={playlist.playlist_id}
-                        className="flex flex-col overflow-hidden rounded-lg border bg-card shadow-sm"
-                      >
-                        <div className="p-4">
-                          <h4 className="font-semibold">{playlist.title}</h4>
-                          <p className="mt-1 text-sm text-muted-foreground line-clamp-3">
-                            {playlist.description || "No description available"}
-                          </p>
-                          <div className="mt-3 flex items-center justify-between text-sm">
-                            <span className="flex items-center text-muted-foreground">
-                              <Film className="mr-1 h-4 w-4" />
-                              {playlist.item_count} videos
-                            </span>
-                            <span className="flex items-center text-muted-foreground">
-                              <Calendar className="mr-1 h-4 w-4" />
-                              {new Date(playlist.published_at).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <a 
-                            href={`https://youtube.com/playlist?list=${playlist.playlist_id}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-3 inline-flex items-center text-sm font-medium text-primary"
-                          >
-                            <Youtube className="mr-1 h-4 w-4" />
-                            View Playlist
-                          </a>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {filteredPlaylists.length === 0 && (
-                    <div className="flex items-center justify-center py-8 text-center">
-                      <div className="max-w-md rounded-lg border p-6">
-                        <ListVideo className="mx-auto h-10 w-10 text-muted-foreground" />
-                        <h3 className="mt-4 text-lg font-semibold">No playlists found</h3>
-                        <p className="mt-2 text-sm text-muted-foreground">
-                          Try adjusting your search criteria.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </DialogContent>
-              </Dialog>
+              <Button 
+                variant="outline"
+                onClick={() => setShowAllPlaylists(!showAllPlaylists)}
+              >
+                {showAllPlaylists 
+                  ? "Show Less" 
+                  : `View All ${youtubeData.playlists.length} Playlists`}
+              </Button>
             </div>
           )}
         </div>
