@@ -585,6 +585,8 @@ const normalizeDomainData = (domains) => {
         domainName: domain.domain_name,
         status: domain.status || status,
         lastScraped: domain.last_scraped_at,
+        // Include screenshots if available
+        screenshots: domain.screenshots || null,
         page_count: parseInt(domain.page_count) || 0,
         crawlProgress: {
           pagesTotal: parseInt(domain.page_count) || 0,
@@ -612,6 +614,7 @@ const normalizeDomainData = (domains) => {
       // Ensure we have consistent properties for all domains
       domainId: domain.domainId || domain.id || domain._id,
       domainName: domainName,
+      screenshots: domain.screenshots || null,
       status: domain.status || domain.crawlProgress?.status || domain.crawl_status || 'unknown',
       lastScraped: domain.lastScraped || domain.lastCrawled || domain.crawlProgress?.lastActive || domain.last_crawled,
       crawlProgress: domain.crawlProgress || {
@@ -646,7 +649,8 @@ export const getDomainById = async (id) => {
         id: domainData.id,
         domain_name: domainData.domain_name,
         status: domainData.status,
-        last_scraped_at: domainData.last_scraped_at
+        last_scraped_at: domainData.last_scraped_at,
+        screenshots: domainData.screenshots // Ensure screenshots are preserved
       };
     }
     
@@ -684,6 +688,8 @@ const normalizeSingleDomain = (domain) => {
     domainName: domainName,
     status: domain.status || 'unknown',
     lastScraped: domain.last_scraped_at || domain.lastScraped,
+    // Include screenshots if available
+    screenshots: domain.screenshots || null,
     crawlProgress: {
       pagesTotal: domain.pages?.length || domain.page_count || 0,
       pagesCrawled: domain.pages_crawled || 0,
