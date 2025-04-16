@@ -81,6 +81,10 @@ const apiRouter = express.Router();
 // Apply authentication middleware to all API routes
 apiRouter.use(authMiddleware);
 
+// Mount YouTube routes first (no authentication)
+app.use('/api/youtube', youtubeRoutes);
+
+// Define API routes
 // Get domain details by ID
 apiRouter.get('/domain-data/:id', async (req, res) => {
   try {
@@ -598,11 +602,13 @@ apiRouter.get('/health-check', async (req, res) => {
   }
 });
 
-// Mount API router at /api prefix
-app.use('/api', apiRouter);
-
-// Mount YouTube routes separately to avoid auth middleware
+// Mount YouTube routes first (no authentication required)
+// Note: The YouTube endpoints are now served by this main server.
+// backend/server.js (port 3010) is no longer needed and can be removed.
 app.use('/api/youtube', youtubeRoutes);
+
+// Then mount the API router with authentication for all other /api routes
+app.use('/api', apiRouter);
 
 // Catch-all route to serve index.html for client-side routing
 app.get('*', (req, res) => {

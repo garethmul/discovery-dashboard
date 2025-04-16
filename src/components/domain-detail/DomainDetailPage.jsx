@@ -54,7 +54,7 @@ export default function DomainDetailPage() {
       if (!domain?.domainId) return;
       
       try {
-        const response = await fetch(`http://localhost:3010/api/youtube/${domain.domainId}`);
+        const response = await fetch(`/api/youtube/${domain.domainId}`);
         if (response.ok) {
           setHasYoutubeData(true);
         }

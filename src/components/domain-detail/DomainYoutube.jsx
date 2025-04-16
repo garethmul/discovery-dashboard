@@ -69,7 +69,7 @@ export default function DomainYoutube({ domain }) {
       
       setLoading(true);
       try {
-        const response = await axios.get(`http://localhost:3010/api/youtube/${domain.domainId}`);
+        const response = await axios.get(`/api/youtube/${domain.domainId}`);
         setYoutubeData(response.data);
         setFilteredVideos(response.data.videos || []);
         // If there are multiple channels, expand the first one by default
