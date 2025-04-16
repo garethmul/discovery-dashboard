@@ -180,7 +180,7 @@ export default function DomainGeneralInfo({ domain }) {
                 </div>
                 <div 
                   className="cursor-pointer overflow-hidden rounded border hover:opacity-90 transition-opacity"
-                  onClick={() => openModal(domain.screenshots.desktopFull || domain.screenshots.desktop)}
+                  onClick={() => openModal(domain.screenshots.desktopFull)}
                 >
                   <img 
                     src={domain.screenshots.desktop} 
@@ -203,7 +203,7 @@ export default function DomainGeneralInfo({ domain }) {
                 </div>
                 <div 
                   className="cursor-pointer overflow-hidden rounded border hover:opacity-90 transition-opacity"
-                  onClick={() => openModal(domain.screenshots.mobileFull || domain.screenshots.mobile)}
+                  onClick={() => openModal(domain.screenshots.mobileFull)}
                 >
                   <img 
                     src={domain.screenshots.mobile} 
