@@ -208,7 +208,7 @@ export default function DomainGeneralInfo({ domain }) {
                   <img 
                     src={domain.screenshots.mobile} 
                     alt={`${domainName} mobile screenshot`} 
-                    className="w-full h-auto" 
+                    className="w-full h-auto max-h-[400px] object-contain mx-auto" 
                   />
                 </div>
                 <p className="mt-2 text-xs text-center text-muted-foreground">
