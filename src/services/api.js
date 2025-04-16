@@ -682,6 +682,34 @@ const normalizeSingleDomain = (domain) => {
     return MOCK_DOMAINS[0];
   }
   
+  // Process app suggestions if they exist - convert from array with snake_case to object with camelCase
+  let processedAppSuggestions = {};
+  if (domain.appSuggestions && Array.isArray(domain.appSuggestions) && domain.appSuggestions.length > 0) {
+    const suggestion = domain.appSuggestions[0]; // Take the first one if there are multiple
+    processedAppSuggestions = {
+      nameOption1: suggestion.name_option_1,
+      nameOption2: suggestion.name_option_2,
+      nameOption3: suggestion.name_option_3,
+      description: suggestion.description,
+      targetAudience: suggestion.target_audience,
+      monetizationStrategy: suggestion.monetization_strategy,
+      developmentTime: suggestion.development_time
+    };
+    console.log('Processed appSuggestions:', processedAppSuggestions);
+  } else if (domain.app_suggestions && Array.isArray(domain.app_suggestions) && domain.app_suggestions.length > 0) {
+    const suggestion = domain.app_suggestions[0];
+    processedAppSuggestions = {
+      nameOption1: suggestion.name_option_1,
+      nameOption2: suggestion.name_option_2,
+      nameOption3: suggestion.name_option_3,
+      description: suggestion.description,
+      targetAudience: suggestion.target_audience,
+      monetizationStrategy: suggestion.monetization_strategy,
+      developmentTime: suggestion.development_time
+    };
+    console.log('Processed app_suggestions:', processedAppSuggestions);
+  }
+  
   // Create the normalized domain object
   const normalizedDomain = {
     domainId: domain.id?.toString() || domain.domainId,
@@ -716,7 +744,8 @@ const normalizeSingleDomain = (domain) => {
     brandAnalysis: domain.brandAnalysis || domain.brand_analysis || null,
     contentCategories: domain.contentCategories || domain.content_categories || [],
     appIdeas: domain.appIdeas || domain.app_ideas || [],
-    appSuggestions: domain.appSuggestions || domain.app_suggestions || {},
+    // Use the processed app suggestions
+    appSuggestions: processedAppSuggestions,
     features: domain.features || [],
     marketingTips: domain.marketingTips || domain.marketing_tips || [],
     // Include schema markup data if available
