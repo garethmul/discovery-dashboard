@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Apr 16, 2025 at 08:50 PM
+-- Generation Time: Apr 16, 2025 at 09:14 PM
 -- Server version: 8.4.4
 -- PHP Version: 8.4.3
 
@@ -712,6 +712,7 @@ CREATE TABLE `domain_images` (
   `id` int NOT NULL,
   `domain_id` int NOT NULL,
   `url` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `linkto_url` text,
   `file_name` varchar(255) DEFAULT NULL,
   `alt_text` text,
   `width` int DEFAULT NULL,
