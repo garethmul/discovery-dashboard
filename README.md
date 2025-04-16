@@ -99,6 +99,11 @@ The dashboard connects to the Domain Crawler API at the configured endpoint. It 
 
 - `/api/domain-data` - Get all domains
 - `/api/domain-data/:domainId` - Get detailed data for a specific domain
+  - **Screenshot fields**: The response now includes `screenshots` object with the following properties:
+    - `desktop`: URL to the desktop screenshot
+    - `mobile`: URL to the mobile screenshot
+    - `desktopFull`: URL to the full desktop screenshot
+    - `mobileFull`: URL to the full mobile screenshot
 - `/api/auth/login` - Authenticate user (if using username/password authentication)
 
 See the API documentation for more details on the expected response structure.

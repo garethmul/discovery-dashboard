@@ -1,7 +1,9 @@
-import React from "react";
-import { Clock, Globe, Calendar, Server, Image, Headphones, FileText, Link2 } from "lucide-react";
+import React, { useState } from "react";
+import { Clock, Globe, Calendar, Server, Image, Headphones, FileText, Link2, X } from "lucide-react";
 
 export default function DomainGeneralInfo({ domain }) {
+  const [selectedImage, setSelectedImage] = useState(null);
+  
   if (!domain) return null;
   
   // Debug the domain structure
@@ -106,6 +108,24 @@ export default function DomainGeneralInfo({ domain }) {
   })();
   const podcastEpisodes = domain.podcasts?.episodes?.length || 0;
   const socialProfiles = domain.opengraph?.filter(item => item.isSocialProfile)?.length || 0;
+  
+  // Check if we have any screenshots
+  const hasScreenshots = domain.screenshots && (
+    domain.screenshots.desktop || 
+    domain.screenshots.mobile || 
+    domain.screenshots.desktopFull || 
+    domain.screenshots.mobileFull
+  );
+
+  // Function to open screenshot modal
+  const openModal = (imageUrl) => {
+    setSelectedImage(imageUrl);
+  };
+
+  // Function to close screenshot modal
+  const closeModal = () => {
+    setSelectedImage(null);
+  };
 
   return (
     <div className="space-y-6">
@@ -145,6 +165,60 @@ export default function DomainGeneralInfo({ domain }) {
           </div>
         </div>
       </div>
+
+      {/* Screenshots Section */}
+      {hasScreenshots && (
+        <div>
+          <h3 className="text-lg font-medium">Screenshots</h3>
+          <div className="mt-4 grid gap-4 md:grid-cols-1 lg:grid-cols-2">
+            {/* Primary Screenshot (Desktop) */}
+            {domain.screenshots.desktop && (
+              <div className="rounded-lg border p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Image className="h-5 w-5 text-primary" />
+                  <h4 className="font-medium">Desktop Screenshot</h4>
+                </div>
+                <div 
+                  className="cursor-pointer overflow-hidden rounded border hover:opacity-90 transition-opacity"
+                  onClick={() => openModal(domain.screenshots.desktopFull || domain.screenshots.desktop)}
+                >
+                  <img 
+                    src={domain.screenshots.desktop} 
+                    alt={`${domainName} desktop screenshot`} 
+                    className="w-full h-auto" 
+                  />
+                </div>
+                <p className="mt-2 text-xs text-center text-muted-foreground">
+                  Click to view full screenshot
+                </p>
+              </div>
+            )}
+            
+            {/* Secondary Screenshot (Mobile) */}
+            {domain.screenshots.mobile && (
+              <div className="rounded-lg border p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Image className="h-5 w-5 text-primary" />
+                  <h4 className="font-medium">Mobile Screenshot</h4>
+                </div>
+                <div 
+                  className="cursor-pointer overflow-hidden rounded border hover:opacity-90 transition-opacity"
+                  onClick={() => openModal(domain.screenshots.mobileFull || domain.screenshots.mobile)}
+                >
+                  <img 
+                    src={domain.screenshots.mobile} 
+                    alt={`${domainName} mobile screenshot`} 
+                    className="w-full h-auto" 
+                  />
+                </div>
+                <p className="mt-2 text-xs text-center text-muted-foreground">
+                  Click to view full screenshot
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <div>
         <h3 className="text-lg font-medium">Crawl Information</h3>
@@ -300,6 +374,28 @@ export default function DomainGeneralInfo({ domain }) {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Screenshot Modal */}
+      {selectedImage && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black bg-opacity-75 p-4 overflow-y-auto" onClick={closeModal}>
+          <div 
+            className="relative max-w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              className="absolute top-4 right-4 rounded-full bg-black bg-opacity-50 p-2 text-white hover:bg-opacity-70"
+              onClick={closeModal}
+            >
+              <X className="h-6 w-6" />
+            </button>
+            <img 
+              src={selectedImage} 
+              alt="Full screenshot" 
+              className="w-full h-auto max-h-[90vh]"
+            />
           </div>
         </div>
       )}

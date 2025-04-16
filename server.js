@@ -91,8 +91,8 @@ apiRouter.get('/domain-data/:id', async (req, res) => {
     const { id } = req.params;
     console.log(`Fetching domain details for ID: ${id}`);
     
-    // Get basic domain information with correct column names
-    const query = 'SELECT di.id, di.domain as domain_name, di.status, di.last_updated as last_scraped_at, di.data, di.ai_analysis FROM domain_info di WHERE di.id = ?';
+    // Get basic domain information with correct column names - adding screenshot fields
+    const query = 'SELECT di.id, di.domain as domain_name, di.status, di.last_updated as last_scraped_at, di.data, di.ai_analysis, di.screenshot_desktop, di.screenshot_mobile, di.screenshot_desktop_full, di.screenshot_mobile_full FROM domain_info di WHERE di.id = ?';
     console.log('Executing query:', query);
     console.log('With parameters:', [id]);
     
@@ -146,6 +146,23 @@ apiRouter.get('/domain-data/:id', async (req, res) => {
     // Delete the raw fields since we've extracted what we need
     delete domain.data;
     delete domain.ai_analysis;
+    
+    // Add screenshot fields to the domain object
+    const screenshots = {
+      desktop: domain.screenshot_desktop,
+      mobile: domain.screenshot_mobile,
+      desktopFull: domain.screenshot_desktop_full,
+      mobileFull: domain.screenshot_mobile_full
+    };
+    
+    // Remove the original screenshot fields from the domain object
+    delete domain.screenshot_desktop;
+    delete domain.screenshot_mobile;
+    delete domain.screenshot_desktop_full;
+    delete domain.screenshot_mobile_full;
+    
+    // Add the screenshots object to the domain
+    domain.screenshots = screenshots;
     
     // Get domain pages with error handling
     let pageRows = [];
