@@ -1,1 +1,1 @@
-web: npm run setup && cd backend && npm start 
+web: npm start 

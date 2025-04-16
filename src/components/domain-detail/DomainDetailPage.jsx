@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getDomainById } from "../../services/api";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 import { cn } from "../../lib/utils";
-import { AlertCircle, Calendar, FileText, Globe, LayoutGrid, MessageSquare, Server, Headphones, Share2, ImageIcon, Palette, Book, Code } from "lucide-react";
+import { AlertCircle, Calendar, FileText, Globe, LayoutGrid, MessageSquare, Server, Headphones, Share2, ImageIcon, Palette, Book, Code, Youtube } from "lucide-react";
 import DomainGeneralInfo from "./DomainGeneralInfo";
 import DomainMetadata from "./DomainMetadata";
 import DomainSiteStructure from "./DomainSiteStructure";
@@ -15,6 +15,7 @@ import DomainImages from "./DomainImages";
 import DomainBrandInfo from "./DomainBrandInfo";
 import DomainBooks from "./DomainBooks";
 import DomainSchema from "./DomainSchema";
+import DomainYoutube from "./DomainYoutube";
 import { Button } from "../ui/button";
 
 export default function DomainDetailPage() {
@@ -22,6 +23,7 @@ export default function DomainDetailPage() {
   const [domain, setDomain] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [hasYoutubeData, setHasYoutubeData] = useState(false);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("general");
 
@@ -45,6 +47,25 @@ export default function DomainDetailPage() {
       fetchDomain();
     }
   }, [id]);
+
+  useEffect(() => {
+    // Check if there's YouTube data for this domain
+    async function checkYoutubeData() {
+      if (!domain?.domainId) return;
+      
+      try {
+        const response = await fetch(`http://localhost:3010/api/youtube/${domain.domainId}`);
+        if (response.ok) {
+          setHasYoutubeData(true);
+        }
+      } catch (error) {
+        console.error("Error checking YouTube data:", error);
+        setHasYoutubeData(false);
+      }
+    }
+    
+    checkYoutubeData();
+  }, [domain?.domainId]);
 
   if (loading) {
     return (
@@ -138,6 +159,13 @@ export default function DomainDetailPage() {
       icon: ImageIcon,
       content: <DomainImages domain={domain} />,
       hidden: !hasImages,
+    },
+    {
+      id: "youtube",
+      label: "YouTube",
+      icon: Youtube,
+      content: <DomainYoutube domain={domain} />,
+      hidden: !hasYoutubeData,
     },
     {
       id: "books",

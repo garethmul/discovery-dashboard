@@ -5,8 +5,9 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import mysql from 'mysql2/promise';
-import { getDatabaseStatus, runDiagnosticQuery } from './src/api/controllers/diagnosticController.js';
-import { authMiddleware } from './src/middleware/auth.js';
+import { getDatabaseStatus, runDiagnosticQuery } from './server/api/controllers/diagnosticController.js';
+import authMiddleware from './server/middleware/authMiddleware.js';
+import youtubeRoutes from './backend/src/routes/youtubeRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -15,7 +16,7 @@ dotenv.config();
 const PORT = process.env.PORT || 3009;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DIST_DIR = path.join(__dirname, 'public');
+const DIST_DIR = path.join(__dirname, 'dist'); // Changed from 'public' to 'dist'
 
 console.log('Environment PORT:', process.env.PORT);
 console.log('Static files directory:', DIST_DIR);
@@ -58,6 +59,9 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0
 });
+
+// Store pool in app.locals for access in controllers
+app.locals.pool = pool;
 
 // Test database connection on startup
 (async () => {
@@ -597,6 +601,9 @@ apiRouter.get('/health-check', async (req, res) => {
 // Mount API router at /api prefix
 app.use('/api', apiRouter);
 
+// Mount YouTube routes separately to avoid auth middleware
+app.use('/api/youtube', youtubeRoutes);
+
 // Catch-all route to serve index.html for client-side routing
 app.get('*', (req, res) => {
   res.sendFile(path.join(DIST_DIR, 'index.html'));
@@ -605,4 +612,4 @@ app.get('*', (req, res) => {
 // Start the server
 httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
-});
+}); 
