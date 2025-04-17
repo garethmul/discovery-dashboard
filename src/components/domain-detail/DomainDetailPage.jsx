@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getDomainById, getDomainSeoData } from "../../services/api";
+import { getDomainById, getDomainSeoData, getDomainSeoCompetitors } from "../../services/api";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 import { cn } from "../../lib/utils";
-import { AlertCircle, Calendar, FileText, Globe, LayoutGrid, MessageSquare, Server, Headphones, Share2, ImageIcon, Palette, Book, Code, Youtube, BarChart2 } from "lucide-react";
+import { AlertCircle, Calendar, FileText, Globe, LayoutGrid, MessageSquare, Server, Headphones, Share2, ImageIcon, Palette, Book, Code, Youtube, BarChart2, Users } from "lucide-react";
 import DomainGeneralInfo from "./DomainGeneralInfo";
 import DomainMetadata from "./DomainMetadata";
 import DomainSiteStructure from "./DomainSiteStructure";
@@ -17,6 +17,7 @@ import DomainBooks from "./DomainBooks";
 import DomainSchema from "./DomainSchema";
 import DomainYoutube from "./DomainYoutube";
 import DomainSEO from "./DomainSEO";
+import DomainSEOCompetitors from "./DomainSEOCompetitors";
 import { Button } from "../ui/button";
 
 export default function DomainDetailPage() {
@@ -85,6 +86,25 @@ export default function DomainDetailPage() {
     }
     
     checkSeoData();
+  }, [domain?.domainId]);
+
+  // Check if there's SEO competitor data for this domain
+  const [hasSeoCompetitorData, setHasSeoCompetitorData] = useState(false);
+  
+  useEffect(() => {
+    async function checkSeoCompetitorData() {
+      if (!domain?.domainId) return;
+      
+      try {
+        const data = await getDomainSeoCompetitors(domain.domainId);
+        setHasSeoCompetitorData(data && data.competitors && data.competitors.length > 0);
+      } catch (error) {
+        console.error("Error checking SEO competitor data:", error);
+        setHasSeoCompetitorData(false);
+      }
+    }
+    
+    checkSeoCompetitorData();
   }, [domain?.domainId]);
 
   if (loading) {
@@ -186,6 +206,13 @@ export default function DomainDetailPage() {
       icon: BarChart2,
       content: <DomainSEO domain={domain} />,
       hidden: !hasSeoData,
+    },
+    {
+      id: "seo-competitors",
+      label: "SEO Competitors",
+      icon: Users,
+      content: <DomainSEOCompetitors domain={domain} />,
+      hidden: !hasSeoCompetitorData,
     },
     {
       id: "youtube",

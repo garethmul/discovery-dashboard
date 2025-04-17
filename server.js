@@ -733,4 +733,199 @@ app.get('*', (req, res) => {
 // Start the server
 httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
+});
+
+// Get SEO competitor data for a domain
+apiRouter.get('/seo-competitors/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`Fetching SEO competitor data for domain ID: ${id}`);
+    
+    // Get basic domain information first to verify the domain exists
+    const [domainRows] = await pool.query(
+      'SELECT id, domain as domain_name FROM domain_info WHERE id = ?',
+      [id]
+    );
+    
+    if (domainRows.length === 0) {
+      console.log(`No domain found with ID ${id}`);
+      return res.status(404).json({ error: 'Domain not found' });
+    }
+    
+    const domain = domainRows[0];
+    
+    // Get SEO competitor snapshot information
+    let competitorSnapshotRows = [];
+    try {
+      [competitorSnapshotRows] = await pool.query(
+        `SELECT 
+          competitor_id,
+          total_count,
+          items_count,
+          retrieval_date
+        FROM domain_seo_competitors
+        WHERE domain_id = ?
+        ORDER BY retrieval_date DESC
+        LIMIT 1`,
+        [id]
+      );
+      console.log(`Found ${competitorSnapshotRows.length} competitor snapshots for domain ${id}`);
+    } catch (error) {
+      console.error('Error fetching competitor snapshots:', error);
+      // If table doesn't exist or other error, continue with empty array
+      console.log('Continuing with empty competitor snapshots array');
+    }
+    
+    if (competitorSnapshotRows.length === 0) {
+      // No competitor data found
+      return res.json({
+        domain_id: id,
+        domain: domain.domain_name,
+        competitors: [],
+        stats: {
+          total_competitors: 0,
+          total_etv: 0,
+          total_intersections: 0,
+          avg_competitor_intersection: 0
+        },
+        pagination: {
+          total: 0,
+          limit: 0,
+          offset: 0,
+          has_more: false
+        }
+      });
+    }
+    
+    const competitorSnapshot = competitorSnapshotRows[0];
+    
+    // Get competitor domains
+    let competitorDomainRows = [];
+    try {
+      [competitorDomainRows] = await pool.query(
+        `SELECT 
+          competitor_domain_id,
+          domain_name,
+          avg_position,
+          sum_position,
+          intersections,
+          raw_data
+        FROM domain_seo_competitor_domains
+        WHERE competitor_id = ?
+        ORDER BY intersections DESC`,
+        [competitorSnapshot.competitor_id]
+      );
+      console.log(`Found ${competitorDomainRows.length} competitor domains for snapshot ${competitorSnapshot.competitor_id}`);
+    } catch (error) {
+      console.error('Error fetching competitor domains:', error);
+      // If table doesn't exist or other error, continue with empty array
+      console.log('Continuing with empty competitor domains array');
+    }
+    
+    // Get competitor metrics for each domain
+    const competitors = await Promise.all(competitorDomainRows.map(async (domain) => {
+      let metricsRows = [];
+      try {
+        [metricsRows] = await pool.query(
+          `SELECT 
+            metric_id,
+            metric_type,
+            pos_1,
+            pos_2_3,
+            pos_4_10,
+            pos_11_20,
+            pos_21_30,
+            pos_31_40,
+            pos_41_50,
+            pos_51_60,
+            pos_61_70,
+            pos_71_80,
+            pos_81_90,
+            pos_91_100,
+            etv,
+            impressions_etv,
+            count,
+            estimated_paid_traffic_cost,
+            is_new,
+            is_up,
+            is_down,
+            is_lost
+          FROM domain_seo_competitor_metrics
+          WHERE competitor_domain_id = ?`,
+          [domain.competitor_domain_id]
+        );
+        console.log(`Found ${metricsRows.length} metric rows for competitor domain ${domain.competitor_domain_id}`);
+      } catch (error) {
+        console.error('Error fetching competitor metrics:', error);
+        // If table doesn't exist or other error, continue with empty array
+        console.log('Continuing with empty metrics array');
+      }
+      
+      // Group metrics by type
+      const metrics = {};
+      metricsRows.forEach(metric => {
+        metrics[metric.metric_type] = {
+          pos_1: metric.pos_1,
+          pos_2_3: metric.pos_2_3,
+          pos_4_10: metric.pos_4_10,
+          pos_11_20: metric.pos_11_20,
+          pos_21_30: metric.pos_21_30,
+          pos_31_40: metric.pos_31_40,
+          pos_41_50: metric.pos_41_50,
+          pos_51_60: metric.pos_51_60,
+          pos_61_70: metric.pos_61_70,
+          pos_71_80: metric.pos_71_80,
+          pos_81_90: metric.pos_81_90,
+          pos_91_100: metric.pos_91_100,
+          etv: metric.etv,
+          impressions_etv: metric.impressions_etv,
+          count: metric.count,
+          estimated_paid_traffic_cost: metric.estimated_paid_traffic_cost,
+          is_new: metric.is_new,
+          is_up: metric.is_up,
+          is_down: metric.is_down,
+          is_lost: metric.is_lost
+        };
+      });
+      
+      return {
+        ...domain,
+        metrics
+      };
+    }));
+    
+    // Calculate summary statistics
+    const totalEtv = competitors.reduce((sum, comp) => 
+      sum + (comp.metrics?.metrics_organic?.etv || 0), 0);
+    const totalIntersections = competitors.reduce((sum, comp) => 
+      sum + comp.intersections, 0);
+    const avgIntersection = competitors.length > 0 
+      ? Math.round(totalIntersections / competitors.length) 
+      : 0;
+    
+    // Prepare response
+    const response = {
+      domain_id: id,
+      domain: domain.domain_name,
+      competitors,
+      stats: {
+        total_competitors: competitorSnapshot.total_count || competitors.length,
+        total_etv: totalEtv,
+        total_intersections: totalIntersections,
+        avg_competitor_intersection: avgIntersection
+      },
+      pagination: {
+        total: competitors.length,
+        limit: competitors.length,
+        offset: 0,
+        has_more: false
+      }
+    };
+    
+    console.log(`Sending SEO competitor response with ${competitors.length} competitors`);
+    res.json(response);
+  } catch (error) {
+    console.error('Error fetching SEO competitor data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 }); 
