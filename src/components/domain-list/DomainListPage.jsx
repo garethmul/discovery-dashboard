@@ -36,6 +36,7 @@ export default function DomainListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
+  const [localSearchValue, setLocalSearchValue] = useState(initialSearchQuery);
   const [sortField, setSortField] = useState("domain_name");
   const [sortDirection, setSortDirection] = useState("asc");
   const [page, setPage] = useState(0);
@@ -51,6 +52,7 @@ export default function DomainListPage() {
     // Only update if the search param changed and is different from current state
     if (searchFromUrl !== searchQuery) {
       setSearchQuery(searchFromUrl);
+      setLocalSearchValue(searchFromUrl);
       setPage(0); // Reset to first page
     }
   }, [location.search, searchQuery]);
@@ -181,18 +183,25 @@ export default function DomainListPage() {
   // Update search input handler to sync with URL
   const handleSearchChange = (e) => {
     const newSearchValue = e.target.value;
-    setSearchQuery(newSearchValue);
+    setLocalSearchValue(newSearchValue);
     
-    // Update the URL with the search parameter (or remove if empty)
-    const params = new URLSearchParams(location.search);
-    if (newSearchValue) {
-      params.set("search", newSearchValue);
-    } else {
-      params.delete("search");
+    // Update the URL with debounced search parameter
+    if (window.searchTimeout) {
+      clearTimeout(window.searchTimeout);
     }
     
-    // Replace the current URL to avoid creating multiple history entries for each keystroke
-    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+    window.searchTimeout = setTimeout(() => {
+      setSearchQuery(newSearchValue);
+      const params = new URLSearchParams(location.search);
+      if (newSearchValue) {
+        params.set("search", newSearchValue);
+      } else {
+        params.delete("search");
+      }
+      
+      // Replace the current URL to avoid creating multiple history entries
+      navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+    }, 500); // 500ms debounce delay
   };
 
   return (
@@ -206,7 +215,7 @@ export default function DomainListPage() {
               type="search"
               placeholder="Search domains..."
               className="w-full pl-8 sm:w-[300px]"
-              value={searchQuery}
+              value={localSearchValue}
               onChange={handleSearchChange}
             />
           </div>
