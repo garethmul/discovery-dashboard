@@ -25,12 +25,6 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../ui/tooltip";
 
 function formatNumber(num) {
   if (!num && num !== 0) return "-";
@@ -498,69 +492,33 @@ export default function DomainSEOCompetitors({ domain }) {
                         Keyword Movement
                       </h4>
                       <div className="flex flex-wrap gap-x-4 gap-y-2">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex items-center gap-1">
-                                <div className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 px-2 py-1 rounded text-xs font-medium">
-                                  +{formatNumber(keywordMovement.new)}
-                                </div>
-                                <span className="text-xs">New</span>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>New keywords appearing in the top 100</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                        <div className="flex items-center gap-1" title="New keywords appearing in the top 100">
+                          <div className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 px-2 py-1 rounded text-xs font-medium">
+                            +{formatNumber(keywordMovement.new)}
+                          </div>
+                          <span className="text-xs">New</span>
+                        </div>
                         
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex items-center gap-1">
-                                <div className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 px-2 py-1 rounded text-xs font-medium">
-                                  ↑{formatNumber(keywordMovement.up)}
-                                </div>
-                                <span className="text-xs">Improved</span>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Keywords that moved up in ranking</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                        <div className="flex items-center gap-1" title="Keywords that moved up in ranking">
+                          <div className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 px-2 py-1 rounded text-xs font-medium">
+                            ↑{formatNumber(keywordMovement.up)}
+                          </div>
+                          <span className="text-xs">Improved</span>
+                        </div>
                         
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex items-center gap-1">
-                                <div className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300 px-2 py-1 rounded text-xs font-medium">
-                                  ↓{formatNumber(keywordMovement.down)}
-                                </div>
-                                <span className="text-xs">Declined</span>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Keywords that moved down in ranking</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                        <div className="flex items-center gap-1" title="Keywords that moved down in ranking">
+                          <div className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300 px-2 py-1 rounded text-xs font-medium">
+                            ↓{formatNumber(keywordMovement.down)}
+                          </div>
+                          <span className="text-xs">Declined</span>
+                        </div>
                         
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex items-center gap-1">
-                                <div className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300 px-2 py-1 rounded text-xs font-medium">
-                                  -{formatNumber(keywordMovement.lost)}
-                                </div>
-                                <span className="text-xs">Lost</span>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Keywords that dropped out of the top 100</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                        <div className="flex items-center gap-1" title="Keywords that dropped out of the top 100">
+                          <div className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300 px-2 py-1 rounded text-xs font-medium">
+                            -{formatNumber(keywordMovement.lost)}
+                          </div>
+                          <span className="text-xs">Lost</span>
+                        </div>
                       </div>
                     </div>
                   </div>
