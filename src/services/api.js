@@ -809,4 +809,88 @@ if (!localStorage.getItem('apiToken')) {
   storeApiKey('test-api-key-123');
 }
 
+/**
+ * Fetches SEO ranked keywords data for a specific domain
+ * @param {string} domainId - The domain ID to get SEO data for
+ * @returns {Promise<Object>} SEO data object with statistics and keywords
+ */
+export const getDomainSeoData = async (domainId) => {
+  if (!isApiAvailable) {
+    console.warn('API is unavailable, using mock SEO data');
+    
+    // Generate mock SEO data
+    const keywordCount = 50;
+    const mockKeywords = Array.from({ length: keywordCount }, (_, i) => {
+      const position = Math.floor(Math.random() * 100) + 1;
+      const previousPosition = Math.random() > 0.3 ? Math.floor(Math.random() * 100) + 1 : null;
+      const searchVolume = Math.floor(Math.random() * 10000);
+      const cpc = (Math.random() * 10).toFixed(2);
+      const competition = Math.random().toFixed(2);
+      
+      return {
+        keyword: `sample keyword ${i + 1}`,
+        position,
+        previous_position: previousPosition,
+        search_volume: searchVolume,
+        cpc,
+        competition,
+        url: `https://example.com/page-${i + 1}`,
+        retrieval_date: new Date().toISOString().split('T')[0]
+      };
+    });
+    
+    // Calculate statistics
+    const top3Count = mockKeywords.filter(k => k.position <= 3).length;
+    const top10Count = mockKeywords.filter(k => k.position <= 10).length;
+    const top20Count = mockKeywords.filter(k => k.position <= 20).length;
+    const top50Count = mockKeywords.filter(k => k.position <= 50).length;
+    const below50Count = mockKeywords.filter(k => k.position > 50).length;
+    
+    // Average position
+    const averagePosition = mockKeywords.reduce((sum, k) => sum + k.position, 0) / keywordCount;
+    
+    // Most valuable keywords (search volume * cpc)
+    const valuableKeywords = [...mockKeywords]
+      .map(k => ({
+        ...k,
+        estimated_value: k.search_volume * parseFloat(k.cpc) / 1000
+      }))
+      .sort((a, b) => b.estimated_value - a.estimated_value)
+      .slice(0, 10);
+    
+    return {
+      domain_id: domainId,
+      domain: "example.com",
+      statistics: {
+        total_keywords: keywordCount,
+        average_position: averagePosition,
+        top3_count: top3Count,
+        top10_count: top10Count,
+        top20_count: top20Count,
+        top50_count: top50Count,
+        below50_count: below50Count
+      },
+      keywords: mockKeywords,
+      most_valuable_keywords: valuableKeywords,
+      pagination: {
+        total: keywordCount,
+        limit: keywordCount,
+        offset: 0,
+        has_more: false
+      }
+    };
+  }
+
+  try {
+    const response = await api.get(`/seo/${domainId}`);
+    console.log(`SEO data response for domain ID ${domainId}:`, response.data);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching SEO data for domain ${domainId}:`, error);
+    
+    // If API fails, return mock data
+    return getDomainSeoData(domainId);
+  }
+};
+
 export default api; 

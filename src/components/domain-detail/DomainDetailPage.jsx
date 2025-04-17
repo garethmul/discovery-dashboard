@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getDomainById } from "../../services/api";
+import { getDomainById, getDomainSeoData } from "../../services/api";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 import { cn } from "../../lib/utils";
-import { AlertCircle, Calendar, FileText, Globe, LayoutGrid, MessageSquare, Server, Headphones, Share2, ImageIcon, Palette, Book, Code, Youtube } from "lucide-react";
+import { AlertCircle, Calendar, FileText, Globe, LayoutGrid, MessageSquare, Server, Headphones, Share2, ImageIcon, Palette, Book, Code, Youtube, BarChart2 } from "lucide-react";
 import DomainGeneralInfo from "./DomainGeneralInfo";
 import DomainMetadata from "./DomainMetadata";
 import DomainSiteStructure from "./DomainSiteStructure";
@@ -16,6 +16,7 @@ import DomainBrandInfo from "./DomainBrandInfo";
 import DomainBooks from "./DomainBooks";
 import DomainSchema from "./DomainSchema";
 import DomainYoutube from "./DomainYoutube";
+import DomainSEO from "./DomainSEO";
 import { Button } from "../ui/button";
 
 export default function DomainDetailPage() {
@@ -65,6 +66,25 @@ export default function DomainDetailPage() {
     }
     
     checkYoutubeData();
+  }, [domain?.domainId]);
+
+  // Check if there's SEO data for this domain
+  const [hasSeoData, setHasSeoData] = useState(false);
+  
+  useEffect(() => {
+    async function checkSeoData() {
+      if (!domain?.domainId) return;
+      
+      try {
+        const data = await getDomainSeoData(domain.domainId);
+        setHasSeoData(data && data.keywords && data.keywords.length > 0);
+      } catch (error) {
+        console.error("Error checking SEO data:", error);
+        setHasSeoData(false);
+      }
+    }
+    
+    checkSeoData();
   }, [domain?.domainId]);
 
   if (loading) {
@@ -159,6 +179,13 @@ export default function DomainDetailPage() {
       icon: ImageIcon,
       content: <DomainImages domain={domain} />,
       hidden: !hasImages,
+    },
+    {
+      id: "seo",
+      label: "SEO",
+      icon: BarChart2,
+      content: <DomainSEO domain={domain} />,
+      hidden: !hasSeoData,
     },
     {
       id: "youtube",

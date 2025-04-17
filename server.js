@@ -575,6 +575,104 @@ apiRouter.get('/domain-data', async (req, res) => {
   }
 });
 
+// Get SEO data for a domain
+apiRouter.get('/seo/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`Fetching SEO data for domain ID: ${id}`);
+    
+    // Get basic domain information first to verify the domain exists
+    const [domainRows] = await pool.query(
+      'SELECT id, domain as domain_name FROM domain_info WHERE id = ?',
+      [id]
+    );
+    
+    if (domainRows.length === 0) {
+      console.log(`No domain found with ID ${id}`);
+      return res.status(404).json({ error: 'Domain not found' });
+    }
+    
+    const domain = domainRows[0];
+    
+    // Get SEO ranked keywords data
+    let keywordRows = [];
+    try {
+      [keywordRows] = await pool.query(
+        `SELECT 
+          ranked_keyword_id,
+          keyword,
+          position,
+          previous_position,
+          search_volume,
+          cpc,
+          competition,
+          url,
+          retrieval_date
+        FROM domain_ranked_keywords 
+        WHERE domain_id = ?
+        ORDER BY position ASC`,
+        [id]
+      );
+      console.log(`Found ${keywordRows.length} ranked keywords for domain ${id}`);
+    } catch (error) {
+      console.error('Error fetching ranked keywords:', error);
+      // If table doesn't exist or other error, continue with empty array
+      console.log('Continuing with empty keywords array');
+    }
+    
+    // Calculate statistics
+    const totalKeywords = keywordRows.length;
+    const top3Count = keywordRows.filter(k => k.position <= 3).length;
+    const top10Count = keywordRows.filter(k => k.position <= 10).length;
+    const top20Count = keywordRows.filter(k => k.position <= 20).length;
+    const top50Count = keywordRows.filter(k => k.position <= 50).length;
+    const below50Count = keywordRows.filter(k => k.position > 50).length;
+    
+    // Calculate average position
+    const averagePosition = totalKeywords > 0
+      ? keywordRows.reduce((sum, k) => sum + k.position, 0) / totalKeywords
+      : 0;
+    
+    // Calculate most valuable keywords (search volume * cpc)
+    const valuableKeywords = keywordRows
+      .map(k => ({
+        ...k,
+        estimated_value: (k.search_volume || 0) * (parseFloat(k.cpc) || 0) / 1000
+      }))
+      .sort((a, b) => b.estimated_value - a.estimated_value)
+      .slice(0, 10);
+    
+    // Prepare the response
+    const response = {
+      domain_id: id,
+      domain: domain.domain_name,
+      statistics: {
+        total_keywords: totalKeywords,
+        average_position: averagePosition,
+        top3_count: top3Count,
+        top10_count: top10Count,
+        top20_count: top20Count,
+        top50_count: top50Count,
+        below50_count: below50Count
+      },
+      keywords: keywordRows,
+      most_valuable_keywords: valuableKeywords,
+      pagination: {
+        total: totalKeywords,
+        limit: totalKeywords,
+        offset: 0,
+        has_more: false
+      }
+    };
+    
+    console.log(`Sending SEO data response with ${totalKeywords} keywords`);
+    res.json(response);
+  } catch (error) {
+    console.error('Error fetching SEO data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Health check endpoint
 apiRouter.get('/health-check', async (req, res) => {
   try {
