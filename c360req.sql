@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Apr 16, 2025 at 09:14 PM
+-- Generation Time: Apr 17, 2025 at 08:26 AM
 -- Server version: 8.4.4
 -- PHP Version: 8.4.3
 
@@ -943,6 +943,26 @@ CREATE TABLE `domain_podcast_feeds` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `domain_ranked_keywords`
+--
+
+CREATE TABLE `domain_ranked_keywords` (
+  `ranked_keyword_id` bigint NOT NULL,
+  `domain_id` int NOT NULL,
+  `keyword` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `position` int NOT NULL,
+  `previous_position` int DEFAULT NULL,
+  `search_volume` int DEFAULT NULL,
+  `cpc` decimal(10,2) DEFAULT NULL,
+  `competition` decimal(5,4) DEFAULT NULL,
+  `url` varchar(2083) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `retrieval_date` datetime NOT NULL COMMENT 'When this snapshot was taken',
+  `raw_data` json DEFAULT NULL COMMENT 'Full API result for this row'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `domain_rss_feeds`
 --
 
@@ -977,6 +997,96 @@ CREATE TABLE `domain_schema_markup` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `domain_seo_competitors`
+--
+
+CREATE TABLE `domain_seo_competitors` (
+  `competitor_id` bigint NOT NULL,
+  `domain_id` int NOT NULL,
+  `total_count` int NOT NULL,
+  `items_count` int NOT NULL,
+  `retrieval_date` datetime NOT NULL COMMENT 'When this snapshot was taken'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `domain_seo_competitors_cache`
+--
+
+CREATE TABLE `domain_seo_competitors_cache` (
+  `id` int NOT NULL,
+  `domain` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `competitor_data` json NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `domain_seo_competitor_domains`
+--
+
+CREATE TABLE `domain_seo_competitor_domains` (
+  `competitor_domain_id` bigint NOT NULL,
+  `competitor_id` bigint NOT NULL,
+  `domain_name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `avg_position` decimal(10,2) DEFAULT NULL,
+  `sum_position` int DEFAULT NULL,
+  `intersections` int DEFAULT NULL,
+  `raw_data` json DEFAULT NULL COMMENT 'Full API result for this competitor'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `domain_seo_competitor_metrics`
+--
+
+CREATE TABLE `domain_seo_competitor_metrics` (
+  `metric_id` bigint NOT NULL,
+  `competitor_domain_id` bigint NOT NULL,
+  `metric_type` enum('metrics_organic','metrics_paid','competitor_metrics_organic','competitor_metrics_paid','full_domain_metrics_organic','full_domain_metrics_paid') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `pos_1` int DEFAULT '0',
+  `pos_2_3` int DEFAULT '0',
+  `pos_4_10` int DEFAULT '0',
+  `pos_11_20` int DEFAULT '0',
+  `pos_21_30` int DEFAULT '0',
+  `pos_31_40` int DEFAULT '0',
+  `pos_41_50` int DEFAULT '0',
+  `pos_51_60` int DEFAULT '0',
+  `pos_61_70` int DEFAULT '0',
+  `pos_71_80` int DEFAULT '0',
+  `pos_81_90` int DEFAULT '0',
+  `pos_91_100` int DEFAULT '0',
+  `etv` decimal(20,6) DEFAULT '0.000000',
+  `impressions_etv` decimal(20,6) DEFAULT '0.000000',
+  `count` int DEFAULT '0',
+  `estimated_paid_traffic_cost` decimal(20,6) DEFAULT '0.000000',
+  `is_new` int DEFAULT '0',
+  `is_up` int DEFAULT '0',
+  `is_down` int DEFAULT '0',
+  `is_lost` int DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `domain_seo_keywords_cache`
+--
+
+CREATE TABLE `domain_seo_keywords_cache` (
+  `id` int NOT NULL,
+  `domain` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `keywords_data` json NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -1815,6 +1925,7 @@ CREATE TABLE `youtube_extraction_jobs` (
   `id` int NOT NULL COMMENT 'Auto-increment primary key for the job.',
   `domain_id` int NOT NULL COMMENT 'Foreign key linking to domain entity.',
   `domain_name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Domain name used for searching if channel ID not found in social links.',
+  `channel_id` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `status` enum('pending','processing','completed','failed') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending' COMMENT 'Current status of the job ("pending", "processing", "completed", or "failed").',
   `result` json DEFAULT NULL COMMENT 'Result data from the extraction process, including success status and error details if applicable.',
   `created_at` datetime NOT NULL COMMENT 'When the job was created.',
@@ -2180,6 +2291,14 @@ ALTER TABLE `domain_podcast_feeds`
   ADD KEY `domain_id` (`domain_id`);
 
 --
+-- Indexes for table `domain_ranked_keywords`
+--
+ALTER TABLE `domain_ranked_keywords`
+  ADD PRIMARY KEY (`ranked_keyword_id`),
+  ADD KEY `idx_ranked_keywords_domain` (`domain_id`),
+  ADD KEY `idx_ranked_keywords_keyword` (`keyword`);
+
+--
 -- Indexes for table `domain_rss_feeds`
 --
 ALTER TABLE `domain_rss_feeds`
@@ -2196,6 +2315,43 @@ ALTER TABLE `domain_schema_markup`
   ADD KEY `page_id` (`page_id`),
   ADD KEY `idx_schema_type` (`schema_type`),
   ADD KEY `idx_markup_format` (`markup_format`);
+
+--
+-- Indexes for table `domain_seo_competitors`
+--
+ALTER TABLE `domain_seo_competitors`
+  ADD PRIMARY KEY (`competitor_id`),
+  ADD KEY `idx_competitors_domain` (`domain_id`);
+
+--
+-- Indexes for table `domain_seo_competitors_cache`
+--
+ALTER TABLE `domain_seo_competitors_cache`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `idx_domain_cache` (`domain`);
+
+--
+-- Indexes for table `domain_seo_competitor_domains`
+--
+ALTER TABLE `domain_seo_competitor_domains`
+  ADD PRIMARY KEY (`competitor_domain_id`),
+  ADD KEY `idx_competitor_id` (`competitor_id`),
+  ADD KEY `idx_competitor_domain` (`domain_name`);
+
+--
+-- Indexes for table `domain_seo_competitor_metrics`
+--
+ALTER TABLE `domain_seo_competitor_metrics`
+  ADD PRIMARY KEY (`metric_id`),
+  ADD KEY `idx_competitor_domain_id` (`competitor_domain_id`),
+  ADD KEY `idx_metric_type` (`metric_type`);
+
+--
+-- Indexes for table `domain_seo_keywords_cache`
+--
+ALTER TABLE `domain_seo_keywords_cache`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `idx_domain_cache` (`domain`);
 
 --
 -- Indexes for table `domain_site_structure`
@@ -2841,6 +2997,12 @@ ALTER TABLE `domain_podcast_feeds`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `domain_ranked_keywords`
+--
+ALTER TABLE `domain_ranked_keywords`
+  MODIFY `ranked_keyword_id` bigint NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `domain_rss_feeds`
 --
 ALTER TABLE `domain_rss_feeds`
@@ -2850,6 +3012,36 @@ ALTER TABLE `domain_rss_feeds`
 -- AUTO_INCREMENT for table `domain_schema_markup`
 --
 ALTER TABLE `domain_schema_markup`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `domain_seo_competitors`
+--
+ALTER TABLE `domain_seo_competitors`
+  MODIFY `competitor_id` bigint NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `domain_seo_competitors_cache`
+--
+ALTER TABLE `domain_seo_competitors_cache`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `domain_seo_competitor_domains`
+--
+ALTER TABLE `domain_seo_competitor_domains`
+  MODIFY `competitor_domain_id` bigint NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `domain_seo_competitor_metrics`
+--
+ALTER TABLE `domain_seo_competitor_metrics`
+  MODIFY `metric_id` bigint NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `domain_seo_keywords_cache`
+--
+ALTER TABLE `domain_seo_keywords_cache`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
@@ -3144,11 +3336,35 @@ ALTER TABLE `domain_pages`
   ADD CONSTRAINT `domain_pages_ibfk_2` FOREIGN KEY (`job_id`) REFERENCES `scrape_jobs` (`id`) ON DELETE CASCADE;
 
 --
+-- Constraints for table `domain_ranked_keywords`
+--
+ALTER TABLE `domain_ranked_keywords`
+  ADD CONSTRAINT `fk_ranked_dom` FOREIGN KEY (`domain_id`) REFERENCES `domain_info` (`id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `domain_schema_markup`
 --
 ALTER TABLE `domain_schema_markup`
   ADD CONSTRAINT `fk_schema_domain_id` FOREIGN KEY (`domain_id`) REFERENCES `domain_info` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_schema_page_id` FOREIGN KEY (`page_id`) REFERENCES `domain_pages` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `domain_seo_competitors`
+--
+ALTER TABLE `domain_seo_competitors`
+  ADD CONSTRAINT `fk_competitors_dom` FOREIGN KEY (`domain_id`) REFERENCES `domain_info` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `domain_seo_competitor_domains`
+--
+ALTER TABLE `domain_seo_competitor_domains`
+  ADD CONSTRAINT `fk_competitor_id` FOREIGN KEY (`competitor_id`) REFERENCES `domain_seo_competitors` (`competitor_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `domain_seo_competitor_metrics`
+--
+ALTER TABLE `domain_seo_competitor_metrics`
+  ADD CONSTRAINT `fk_competitor_domain_id` FOREIGN KEY (`competitor_domain_id`) REFERENCES `domain_seo_competitor_domains` (`competitor_domain_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `domain_site_structure`
