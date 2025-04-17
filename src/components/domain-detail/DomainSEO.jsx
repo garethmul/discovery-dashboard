@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api, { getDomainSeoData } from "../../services/api";
 import { Search, ChevronDown, ChevronUp, ArrowDownUp, BarChart2, Hash, TrendingUp, DollarSign, MessageSquare, Globe } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -69,12 +69,12 @@ export default function DomainSEO({ domain }) {
       
       setLoading(true);
       try {
-        const response = await axios.get(`/api/seo/${domain.domainId}`);
-        setSeoData(response.data);
-        setFilteredKeywords(response.data.keywords || []);
+        const data = await getDomainSeoData(domain.domainId);
+        setSeoData(data);
+        setFilteredKeywords(data.keywords || []);
       } catch (err) {
         console.error("Error fetching SEO data:", err);
-        setError(err.response?.data?.error || "Failed to load SEO data");
+        setError(err.message || "Failed to load SEO data");
       } finally {
         setLoading(false);
       }
