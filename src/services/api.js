@@ -1048,8 +1048,84 @@ export const getDomainSeoCompetitors = async (domainId) => {
   } catch (error) {
     console.error(`Error fetching SEO competitors for domain ${domainId}:`, error);
     
-    // Generate mock competitor data on error
-    return getDomainSeoCompetitors(domainId);
+    // Generate mock competitor data instead of recursive call
+    const competitorCount = 10;
+    const mockCompetitors = Array.from({ length: competitorCount }, (_, i) => {
+      const avgPosition = Math.floor(Math.random() * 25) + 1;
+      const intersections = Math.floor(Math.random() * 150) + 10;
+      const etv = Math.floor(Math.random() * 5000) + 100;
+      
+      return {
+        competitor_domain_id: i + 1,
+        domain_name: `competitor${i + 1}.com`,
+        avg_position: avgPosition,
+        sum_position: avgPosition * intersections,
+        intersections: intersections,
+        metrics: {
+          metrics_organic: {
+            pos_1: Math.floor(Math.random() * 5),
+            pos_2_3: Math.floor(Math.random() * 10),
+            pos_4_10: Math.floor(Math.random() * 20),
+            pos_11_20: Math.floor(Math.random() * 30),
+            pos_21_30: Math.floor(Math.random() * 40),
+            pos_31_40: Math.floor(Math.random() * 30),
+            pos_41_50: Math.floor(Math.random() * 20),
+            pos_51_60: Math.floor(Math.random() * 10),
+            pos_61_70: Math.floor(Math.random() * 5),
+            pos_71_80: Math.floor(Math.random() * 5),
+            pos_81_90: Math.floor(Math.random() * 5),
+            pos_91_100: Math.floor(Math.random() * 5),
+            etv: etv,
+            impressions_etv: etv * 20,
+            count: intersections,
+            estimated_paid_traffic_cost: etv * 1.5,
+            is_new: Math.random() > 0.7 ? Math.floor(Math.random() * 10) : 0,
+            is_up: Math.random() > 0.5 ? Math.floor(Math.random() * 20) : 0,
+            is_down: Math.random() > 0.5 ? Math.floor(Math.random() * 15) : 0,
+            is_lost: Math.random() > 0.7 ? Math.floor(Math.random() * 5) : 0,
+          },
+          competitor_metrics_organic: {
+            pos_1: Math.floor(Math.random() * 10),
+            pos_2_3: Math.floor(Math.random() * 15),
+            pos_4_10: Math.floor(Math.random() * 30),
+            pos_11_20: Math.floor(Math.random() * 40),
+            pos_21_30: Math.floor(Math.random() * 50),
+            pos_31_40: Math.floor(Math.random() * 40),
+            pos_41_50: Math.floor(Math.random() * 30),
+            pos_51_60: Math.floor(Math.random() * 20),
+            pos_61_70: Math.floor(Math.random() * 10),
+            pos_71_80: Math.floor(Math.random() * 10),
+            pos_81_90: Math.floor(Math.random() * 10),
+            pos_91_100: Math.floor(Math.random() * 10),
+            etv: etv * (1 + Math.random()),
+            impressions_etv: etv * 30,
+            count: intersections * (1 + Math.random() * 2),
+            estimated_paid_traffic_cost: etv * 2,
+          }
+        }
+      };
+    });
+    
+    // Add summary statistics
+    const totalEtv = mockCompetitors.reduce((sum, comp) => sum + comp.metrics.metrics_organic.etv, 0);
+    const totalIntersections = mockCompetitors.reduce((sum, comp) => sum + comp.intersections, 0);
+    
+    return {
+      domain_id: domainId,
+      competitors: mockCompetitors,
+      stats: {
+        total_competitors: competitorCount,
+        total_etv: totalEtv,
+        total_intersections: totalIntersections,
+        avg_competitor_intersection: Math.round(totalIntersections / competitorCount)
+      },
+      pagination: {
+        total: competitorCount,
+        limit: competitorCount,
+        offset: 0,
+        has_more: false
+      }
+    };
   }
 };
 

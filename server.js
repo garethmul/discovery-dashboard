@@ -717,24 +717,6 @@ apiRouter.get('/health-check', async (req, res) => {
   }
 });
 
-// Mount YouTube routes first (no authentication required)
-// Note: The YouTube endpoints are now served by this main server.
-// backend/server.js (port 3010) is no longer needed and can be removed.
-app.use('/api/youtube', youtubeRoutes);
-
-// Then mount the API router with authentication for all other /api routes
-app.use('/api', apiRouter);
-
-// Catch-all route to serve index.html for client-side routing
-app.get('*', (req, res) => {
-  res.sendFile(path.join(DIST_DIR, 'index.html'));
-});
-
-// Start the server
-httpServer.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server is running on port ${PORT}`);
-});
-
 // Get SEO competitor data for a domain
 apiRouter.get('/seo-competitors/:id', async (req, res) => {
   try {
@@ -928,4 +910,22 @@ apiRouter.get('/seo-competitors/:id', async (req, res) => {
     console.error('Error fetching SEO competitor data:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+// Mount YouTube routes first (no authentication required)
+// Note: The YouTube endpoints are now served by this main server.
+// backend/server.js (port 3010) is no longer needed and can be removed.
+app.use('/api/youtube', youtubeRoutes);
+
+// Then mount the API router with authentication for all other /api routes
+app.use('/api', apiRouter);
+
+// Catch-all route to serve index.html for client-side routing
+app.get('*', (req, res) => {
+  res.sendFile(path.join(DIST_DIR, 'index.html'));
+});
+
+// Start the server
+httpServer.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server is running on port ${PORT}`);
 }); 
