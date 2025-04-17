@@ -39,6 +39,7 @@ function formatNumber(num) {
 
 function formatCurrency(num) {
   if (!num && num !== 0) return "-";
+  if (typeof num !== 'number') return "-";
   if (num >= 1000000) {
     return '$' + (num / 1000000).toFixed(1) + 'M';
   }
@@ -153,37 +154,40 @@ export default function DomainSEOCompetitors({ domain }) {
     if (!metrics?.metrics_organic) return [];
     
     const organic = metrics.metrics_organic;
-    const total = organic.count || 1; // Prevent division by zero
+    const total = parseInt(organic.count) || 1; // Ensure numeric values and prevent division by zero
+    
+    // Helper to safely get numeric values from metrics
+    const safeNumber = (val) => typeof val === 'number' ? val : parseInt(val) || 0;
     
     return [
       {
         label: 'Top 3',
-        value: (organic.pos_1 || 0) + (organic.pos_2_3 || 0),
-        percentage: (((organic.pos_1 || 0) + (organic.pos_2_3 || 0)) / total) * 100,
+        value: safeNumber(organic.pos_1) + safeNumber(organic.pos_2_3),
+        percentage: ((safeNumber(organic.pos_1) + safeNumber(organic.pos_2_3)) / total) * 100,
         color: 'bg-green-500'
       },
       {
         label: '4-10',
-        value: organic.pos_4_10 || 0,
-        percentage: ((organic.pos_4_10 || 0) / total) * 100,
+        value: safeNumber(organic.pos_4_10),
+        percentage: (safeNumber(organic.pos_4_10) / total) * 100,
         color: 'bg-blue-500'
       },
       {
         label: '11-20',
-        value: organic.pos_11_20 || 0,
-        percentage: ((organic.pos_11_20 || 0) / total) * 100,
+        value: safeNumber(organic.pos_11_20),
+        percentage: (safeNumber(organic.pos_11_20) / total) * 100,
         color: 'bg-yellow-500'
       },
       {
         label: '21-50',
-        value: (organic.pos_21_30 || 0) + (organic.pos_31_40 || 0) + (organic.pos_41_50 || 0),
-        percentage: (((organic.pos_21_30 || 0) + (organic.pos_31_40 || 0) + (organic.pos_41_50 || 0)) / total) * 100,
+        value: safeNumber(organic.pos_21_30) + safeNumber(organic.pos_31_40) + safeNumber(organic.pos_41_50),
+        percentage: ((safeNumber(organic.pos_21_30) + safeNumber(organic.pos_31_40) + safeNumber(organic.pos_41_50)) / total) * 100,
         color: 'bg-orange-500'
       },
       {
         label: '51-100',
-        value: (organic.pos_51_60 || 0) + (organic.pos_61_70 || 0) + (organic.pos_71_80 || 0) + (organic.pos_81_90 || 0) + (organic.pos_91_100 || 0),
-        percentage: (((organic.pos_51_60 || 0) + (organic.pos_61_70 || 0) + (organic.pos_71_80 || 0) + (organic.pos_81_90 || 0) + (organic.pos_91_100 || 0)) / total) * 100,
+        value: safeNumber(organic.pos_51_60) + safeNumber(organic.pos_61_70) + safeNumber(organic.pos_71_80) + safeNumber(organic.pos_81_90) + safeNumber(organic.pos_91_100),
+        percentage: ((safeNumber(organic.pos_51_60) + safeNumber(organic.pos_61_70) + safeNumber(organic.pos_71_80) + safeNumber(organic.pos_81_90) + safeNumber(organic.pos_91_100)) / total) * 100,
         color: 'bg-red-500'
       }
     ];
@@ -194,11 +198,13 @@ export default function DomainSEOCompetitors({ domain }) {
     if (!metrics?.metrics_organic) return { new: 0, up: 0, down: 0, lost: 0 };
     
     const organic = metrics.metrics_organic;
+    const safeNumber = (val) => typeof val === 'number' ? val : parseInt(val) || 0;
+    
     return {
-      new: organic.is_new || 0,
-      up: organic.is_up || 0,
-      down: organic.is_down || 0,
-      lost: organic.is_lost || 0
+      new: safeNumber(organic.is_new),
+      up: safeNumber(organic.is_up),
+      down: safeNumber(organic.is_down),
+      lost: safeNumber(organic.is_lost)
     };
   };
   
@@ -298,7 +304,9 @@ export default function DomainSEOCompetitors({ domain }) {
                       {formatNumber(competitor.intersections)}
                     </td>
                     <td className="py-2 text-center text-sm">
-                      {competitor.avg_position.toFixed(1)}
+                      {competitor.avg_position && typeof competitor.avg_position === 'number' 
+                        ? competitor.avg_position.toFixed(1) 
+                        : '-'}
                     </td>
                     <td className="py-2 text-center text-sm">
                       {formatCurrency(competitor.metrics?.metrics_organic?.etv || 0)}
@@ -452,7 +460,7 @@ export default function DomainSEOCompetitors({ domain }) {
                         <span className="text-sm font-normal text-muted-foreground ml-1">est. value</span>
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        Avg. position: <span className="font-semibold">{competitor.avg_position.toFixed(1)}</span>
+                        Avg. position: <span className="font-semibold">{typeof competitor.avg_position === 'number' ? competitor.avg_position.toFixed(1) : '-'}</span>
                       </div>
                     </div>
                   </div>
@@ -471,7 +479,7 @@ export default function DomainSEOCompetitors({ domain }) {
                             key={i}
                             className={`${pos.color} h-full`} 
                             style={{width: `${pos.percentage}%`}}
-                            title={`${pos.label}: ${pos.value} keywords (${pos.percentage.toFixed(1)}%)`}
+                            title={`${pos.label}: ${pos.value} keywords (${typeof pos.percentage === 'number' ? pos.percentage.toFixed(1) : 0}%)`}
                           />
                         ))}
                       </div>
