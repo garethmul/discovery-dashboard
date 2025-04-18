@@ -13,7 +13,7 @@ import DomainPodcasts from "./DomainPodcasts";
 import DomainSocialProfiles from "./DomainSocialProfiles";
 import DomainImages from "./DomainImages";
 import DomainBrandInfo from "./DomainBrandInfo";
-import DomainBooks from "./DomainBooks";
+import BooksTab from "../domain/BooksTab";
 import DomainSchema from "./DomainSchema";
 import DomainYoutube from "./DomainYoutube";
 import DomainSEO from "./DomainSEO";
@@ -178,7 +178,7 @@ export default function DomainDetailPage() {
   const hasAiAnalysis = domain.aiAnalysis;
   const hasSocialProfiles = domain.opengraph && domain.opengraph.filter(item => item.isSocialProfile || item.type === 'social_profile').length > 0;
   const hasBrandData = domain?.brandfetch;
-  const hasBooks = (domain.data?.books?.isbns?.length > 0 || domain.data?.books?.isbnImages?.length > 0);
+  const hasBooks = (domain.data?.books?.isbns?.length > 0 || domain.data?.books?.isbnImages?.length > 0 || domain.domainId || domain.id);
   
   // Determine if images are available
   const hasImages = domain.media?.images?.all?.length > 0 || 
@@ -257,7 +257,7 @@ export default function DomainDetailPage() {
       id: "books",
       label: "Books",
       icon: Book,
-      content: <DomainBooks domain={domain} />,
+      content: <BooksTab domainData={domain} />,
       hidden: !hasBooks,
     },
     {
