@@ -13,7 +13,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "node server.js",
-    "heroku-postbuild": "npm install @radix-ui/react-progress && npm run build"
+    "heroku-postbuild": "npm install --no-shrinkwrap && npm run build"
   },
   "keywords": [],
   "author": "",
