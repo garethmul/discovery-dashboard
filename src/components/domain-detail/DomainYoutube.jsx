@@ -4,7 +4,7 @@ import {
   Search, ChevronDown, ChevronUp, ArrowDownUp, Youtube, 
   Clock, Eye, MessageCircle, Calendar, Film, ListVideo, 
   TrendingUp, Clock4, X, Info, FileText, Tag, Monitor, 
-  Database, Settings, Subtitles, MessageSquare
+  Database, Settings, Subtitles
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -95,7 +95,7 @@ export default function DomainYoutube({ domain }) {
       
       setLoading(true);
       try {
-        const response = await axios.get(`/api/youtube/${domain.domainId}`);
+        const response = await axios.get(`/api/youtube/${domain.domainId}?apiKey=test-api-key-123`);
         setYoutubeData(response.data);
         setFilteredVideos(response.data.videos || []);
         

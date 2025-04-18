@@ -25,7 +25,7 @@ export default function DomainExternalLinks({ domain }) {
     
     try {
       console.log(`Fetching external links for domain ID: ${domain.domainId}`);
-      const response = await axios.get(`/api/external-links/${domain.domainId}`);
+      const response = await axios.get(`/api/external-links/${domain.domainId}?apiKey=test-api-key-123`);
       
       const data = response.data;
       console.log('External links data:', data);

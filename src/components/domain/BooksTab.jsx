@@ -35,7 +35,7 @@ const BooksTab = ({ domainData, preloadedData }) => {
       console.log(`Fetching books for domain ID: ${domainId}`);
       
       // Updated API endpoint format to match other working endpoints
-      const endpoint = `/api/books/${domainId}`;
+      const endpoint = `/api/books/${domainId}?apiKey=test-api-key-123`;
       console.log(`Making API request to: ${endpoint}`);
       
       const response = await axios.get(endpoint);
@@ -54,7 +54,7 @@ const BooksTab = ({ domainData, preloadedData }) => {
       console.error('Error fetching books data:', err);
       setError('Failed to load books data. Please try again later.');
       setDebugInfo({
-        endpoint: `/api/books/${domainData.domainId || domainData.id}`,
+        endpoint: `/api/books/${domainData.domainId || domainData.id}?apiKey=test-api-key-123`,
         error: err.message,
         status: err.response?.status
       });
@@ -71,7 +71,7 @@ const BooksTab = ({ domainData, preloadedData }) => {
     
     try {
       const domainId = domainData.domainId || domainData.id;
-      const endpoint = `/api/books/${domainId}/search?query=${encodeURIComponent(searchQuery)}`;
+      const endpoint = `/api/books/${domainId}/search?query=${encodeURIComponent(searchQuery)}&apiKey=test-api-key-123`;
       console.log(`Making search API request to: ${endpoint}`);
       
       const response = await axios.get(endpoint);
@@ -93,7 +93,7 @@ const BooksTab = ({ domainData, preloadedData }) => {
     
     try {
       const domainId = domainData.domainId || domainData.id;
-      const endpoint = `/api/books/${domainId}/isbn/${isbn}`;
+      const endpoint = `/api/books/${domainId}/isbn/${isbn}?apiKey=test-api-key-123`;
       console.log(`Fetching book details from: ${endpoint}`);
       
       const response = await axios.get(endpoint);

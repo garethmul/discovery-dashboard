@@ -60,7 +60,7 @@ export default function DomainDetailPage() {
       if (!domain?.domainId) return;
       
       try {
-        const response = await axios.get(`/api/youtube/${domain.domainId}`);
+        const response = await axios.get(`/api/youtube/${domain.domainId}?apiKey=test-api-key-123`);
         if (response.status === 200) {
           setHasYoutubeData(true);
         }
@@ -117,7 +117,7 @@ export default function DomainDetailPage() {
       if (!domain?.domainId) return;
       
       try {
-        const response = await axios.get(`/api/external-links/${domain.domainId}`);
+        const response = await axios.get(`/api/external-links/${domain.domainId}?apiKey=test-api-key-123`);
         if (response.status === 200) {
           console.log('External links data:', response.data);
           setHasExternalLinks(response.data && response.data.summary && response.data.summary.length > 0);
@@ -138,7 +138,7 @@ export default function DomainDetailPage() {
       
       try {
         console.log(`Prefetching books data for domain ID: ${domain.domainId}`);
-        const response = await axios.get(`/api/books/${domain.domainId}`);
+        const response = await axios.get(`/api/books/${domain.domainId}?apiKey=test-api-key-123`);
         if (response.status === 200) {
           console.log('Prefetched books data:', response.data);
           setBooksData(response.data);
