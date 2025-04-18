@@ -23,38 +23,18 @@ export default function HomePage() {
           <CardHeader className="flex flex-row items-center gap-4">
             <Globe className="h-8 w-8 text-primary" />
             <div>
-              <CardTitle>Domains</CardTitle>
-              <CardDescription>View all crawled domains</CardDescription>
+              <CardTitle>View Domains</CardTitle>
+              <CardDescription>Browse crawled domains</CardDescription>
             </div>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Analyze all domains that have been crawled, including metadata, structure, and content.
+              View all crawled domains, including metadata, site structure, and content analysis.
             </p>
           </CardContent>
           <CardFooter>
             <Link to="/domains" className="w-full">
-              <Button className="w-full">View Domains</Button>
-            </Link>
-          </CardFooter>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center gap-4">
-            <Database className="h-8 w-8 text-primary" />
-            <div>
-              <CardTitle>API Documentation</CardTitle>
-              <CardDescription>View API details</CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Access documentation for the Domain Crawler API including endpoints and data structures.
-            </p>
-          </CardContent>
-          <CardFooter>
-            <Link to="/api-docs" className="w-full">
-              <Button variant="outline" className="w-full">API Docs</Button>
+              <Button variant="outline" className="w-full">Browse Domains</Button>
             </Link>
           </CardFooter>
         </Card>

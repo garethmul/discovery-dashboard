@@ -43,19 +43,7 @@ export function SidebarLayout() {
       icon: Globe,
       href: "/domains",
       variant: "ghost",
-    },
-    {
-      title: "Crawl Data",
-      icon: Database,
-      href: "/crawl-data",
-      variant: "ghost",
-    },
-    {
-      title: "API Docs",
-      icon: List,
-      href: "/api-docs",
-      variant: "ghost",
-    },
+    }
   ];
 
   const handleSearch = (e) => {

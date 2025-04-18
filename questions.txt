@@ -1,0 +1,9 @@
+1.) On the dashboard (@https://discovery-dashboard-ui-063ac0a49efd.herokuapp.com/dashboard/domains ) can you save the users choice of Sort Order in local storage so their preferences are remembered?
+
+2.) The "Search domains..." box in the header works on all pages, except when the user is already on the dashboard (url above) in which case every letter typed is immediately deleted.
+
+3.) On the dashboard, under last crawled, show the date, hours and minutes for the last crawl.
+
+4.) Remove the 'Crawl Data' and 'Api Docs' links from the navbigation, and remove the associated pages. 
+
+5.) On the domain detail page, we've got duplication of 'Crawl Data' and 'Metadata' is always empty even when there is meta data stored in then 'website_metadata` table.  How is the data for this extracted and saved?

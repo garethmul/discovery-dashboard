@@ -22,12 +22,21 @@ import {
 } from '@mui/icons-material';
 
 const MetadataTab = ({ domainData }) => {
-  // Extract metadata
+  // Extract metadata from all potential sources
   const metadata = domainData.metadata || {};
+  // Also check domainData.data.metadata which is how it's stored from website_metadata table
+  const dataMetadata = domainData.data?.metadata || {};
+  
+  // Merge metadata from different sources, prioritizing direct metadata if available
+  const combinedMetadata = {
+    ...dataMetadata,
+    ...metadata
+  };
+  
   const opengraph = domainData.opengraph || [];
   
   // Flag to check if we have any metadata to display
-  const hasMetadata = Object.keys(metadata).length > 0;
+  const hasMetadata = Object.keys(combinedMetadata).length > 0;
   const hasOpengraph = opengraph.length > 0;
   
   return (
@@ -51,14 +60,14 @@ const MetadataTab = ({ domainData }) => {
                 <CardContent>
                   <Grid container spacing={3}>
                     {/* Title */}
-                    {metadata.title && (
+                    {combinedMetadata.title && (
                       <Grid item xs={12}>
                         <Paper variant="outlined" sx={{ p: 2 }}>
                           <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
                             <TitleIcon sx={{ color: 'primary.main', mr: 2, mt: 0.5 }} />
                             <Box>
                               <Typography variant="subtitle2" color="text.secondary">Title</Typography>
-                              <Typography variant="body1">{metadata.title}</Typography>
+                              <Typography variant="body1">{combinedMetadata.title}</Typography>
                             </Box>
                           </Box>
                         </Paper>
@@ -66,14 +75,14 @@ const MetadataTab = ({ domainData }) => {
                     )}
                     
                     {/* Description */}
-                    {metadata.description && (
+                    {combinedMetadata.description && (
                       <Grid item xs={12}>
                         <Paper variant="outlined" sx={{ p: 2 }}>
                           <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
                             <DescriptionIcon sx={{ color: 'primary.main', mr: 2, mt: 0.5 }} />
                             <Box>
                               <Typography variant="subtitle2" color="text.secondary">Description</Typography>
-                              <Typography variant="body1">{metadata.description}</Typography>
+                              <Typography variant="body1">{combinedMetadata.description}</Typography>
                             </Box>
                           </Box>
                         </Paper>
@@ -81,7 +90,7 @@ const MetadataTab = ({ domainData }) => {
                     )}
                     
                     {/* Logo URL */}
-                    {metadata.logoUrl && (
+                    {combinedMetadata.logoUrl && (
                       <Grid item xs={12} md={6}>
                         <Paper variant="outlined" sx={{ p: 2 }}>
                           <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
@@ -92,7 +101,7 @@ const MetadataTab = ({ domainData }) => {
                               <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                 <Box sx={{ maxWidth: 200, maxHeight: 100, overflow: 'hidden', mb: 1 }}>
                                   <img 
-                                    src={metadata.logoUrl} 
+                                    src={combinedMetadata.logoUrl} 
                                     alt="Website Logo" 
                                     style={{ maxWidth: '100%', maxHeight: '100%' }}
                                     onError={(e) => {
@@ -110,7 +119,7 @@ const MetadataTab = ({ domainData }) => {
                                     color: 'text.secondary'
                                   }}
                                 >
-                                  {metadata.logoUrl}
+                                  {combinedMetadata.logoUrl}
                                 </Typography>
                               </Box>
                             </Box>
@@ -120,7 +129,7 @@ const MetadataTab = ({ domainData }) => {
                     )}
                     
                     {/* Theme Color */}
-                    {metadata.themeColor && (
+                    {combinedMetadata.themeColor && (
                       <Grid item xs={12} md={6}>
                         <Paper variant="outlined" sx={{ p: 2 }}>
                           <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
@@ -133,13 +142,13 @@ const MetadataTab = ({ domainData }) => {
                                   sx={{
                                     width: 40,
                                     height: 40,
-                                    backgroundColor: metadata.themeColor,
+                                    backgroundColor: combinedMetadata.themeColor,
                                     borderRadius: 1,
                                     border: '1px solid rgba(0,0,0,0.1)',
                                     mr: 2
                                   }}
                                 />
-                                <Typography variant="body1">{metadata.themeColor}</Typography>
+                                <Typography variant="body1">{combinedMetadata.themeColor}</Typography>
                               </Box>
                             </Box>
                           </Box>

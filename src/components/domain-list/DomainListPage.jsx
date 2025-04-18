@@ -32,13 +32,25 @@ export default function DomainListPage() {
   const params = new URLSearchParams(location.search);
   const initialSearchQuery = params.get("search") || "";
   
+  // Get sort preferences from localStorage or use defaults
+  const getSavedSortPreference = () => {
+    const savedSortField = localStorage.getItem("domainListSortField");
+    const savedSortDirection = localStorage.getItem("domainListSortDirection");
+    return {
+      sortField: savedSortField || "domain_name",
+      sortDirection: savedSortDirection || "asc"
+    };
+  };
+  
+  const sortPreference = getSavedSortPreference();
+  
   const [domains, setDomains] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
   const [localSearchValue, setLocalSearchValue] = useState(initialSearchQuery);
-  const [sortField, setSortField] = useState("domain_name");
-  const [sortDirection, setSortDirection] = useState("asc");
+  const [sortField, setSortField] = useState(sortPreference.sortField);
+  const [sortDirection, setSortDirection] = useState(sortPreference.sortDirection);
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
@@ -96,12 +108,19 @@ export default function DomainListPage() {
   }, [searchQuery, page, itemsPerPage, sortField, sortDirection]);
 
   const handleSort = (field) => {
+    let newDirection = sortDirection;
     if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+      newDirection = sortDirection === "asc" ? "desc" : "asc";
+      setSortDirection(newDirection);
     } else {
       setSortField(field);
+      newDirection = "asc";
       setSortDirection("asc");
     }
+    
+    // Save sort preferences to localStorage
+    localStorage.setItem("domainListSortField", field);
+    localStorage.setItem("domainListSortDirection", newDirection);
     
     // Reset to first page when sort changes
     setPage(0);
@@ -118,6 +137,8 @@ export default function DomainListPage() {
       year: "numeric",
       month: "short",
       day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
     });
   };
   

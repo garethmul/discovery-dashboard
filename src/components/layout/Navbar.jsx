@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
@@ -22,8 +22,21 @@ import { authApi } from '../../services/api';
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [anchorEl, setAnchorEl] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Get search from URL or empty string
+  const params = new URLSearchParams(location.search);
+  const urlSearchQuery = params.get("search") || "";
+  
+  const [searchQuery, setSearchQuery] = useState(urlSearchQuery);
+  
+  // Sync searchQuery with URL when location changes
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const urlSearch = params.get("search") || "";
+    setSearchQuery(urlSearch);
+  }, [location.search]);
   
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -47,8 +60,14 @@ const Navbar = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/?search=${encodeURIComponent(searchQuery)}`);
+      // Use relative URL to keep user on current page
+      const baseUrl = location.pathname.includes('/domains') ? '/domains' : '/';
+      navigate(`${baseUrl}?search=${encodeURIComponent(searchQuery)}`);
     }
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
   };
 
   return (
@@ -86,7 +105,7 @@ const Navbar = () => {
           <InputBase
             placeholder="Search domains..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleSearchChange}
             sx={{
               color: 'inherit',
               width: '100%',
