@@ -1,0 +1,19 @@
+{
+  "name": "discovery-dashboard",
+  "description": "Dashboard for viewing crawler data",
+  "env": {
+    "NPM_CONFIG_PRODUCTION": {
+      "description": "Set to false to install devDependencies",
+      "value": "false"
+    },
+    "USE_NPM_INSTALL": {
+      "description": "Use npm install instead of npm ci",
+      "value": "true"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ]
+} 

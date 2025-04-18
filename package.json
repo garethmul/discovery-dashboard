@@ -13,9 +13,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "node server.js",
-    "heroku-prebuild": "node heroku-prebuild.js",
-    "heroku-postbuild": "npm install --force && npm run build",
-    "update-lock": "npm i --package-lock-only"
+    "heroku-postbuild": "npm run build"
   },
   "keywords": [],
   "author": "",
