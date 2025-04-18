@@ -33,6 +33,7 @@ export default function DomainDetailPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("general");
   const [hasExternalLinks, setHasExternalLinks] = useState(false);
+  const [booksData, setBooksData] = useState(null);
 
   useEffect(() => {
     async function fetchDomain() {
@@ -61,7 +62,7 @@ export default function DomainDetailPage() {
       if (!domain?.domainId) return;
       
       try {
-        const response = await fetch(`/api/youtube/${domain.domainId}`);
+        const response = await fetch(`/api/youtube/${domain.domainId}?apiKey=${API_KEY}`);
         if (response.ok) {
           setHasYoutubeData(true);
         }
@@ -121,7 +122,8 @@ export default function DomainDetailPage() {
         const response = await fetch(`/external-links/${domain.domainId}?apiKey=${API_KEY}`);
         if (response.ok) {
           const data = await response.json();
-          setHasExternalLinks(data && (data.links?.length > 0 || data.domains?.length > 0));
+          console.log('External links data:', data);
+          setHasExternalLinks(data && data.summary && data.summary.length > 0);
         }
       } catch (error) {
         console.error("Error checking External Links data:", error);
@@ -130,6 +132,27 @@ export default function DomainDetailPage() {
     }
     
     checkExternalLinks();
+  }, [domain?.domainId]);
+
+  // Add a function to fetch books data when the page loads
+  useEffect(() => {
+    async function fetchBooksData() {
+      if (!domain?.domainId) return;
+      
+      try {
+        console.log(`Prefetching books data for domain ID: ${domain.domainId}`);
+        const response = await fetch(`/books/${domain.domainId}?apiKey=${API_KEY}`);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Prefetched books data:', data);
+          setBooksData(data);
+        }
+      } catch (error) {
+        console.error("Error prefetching books data:", error);
+      }
+    }
+    
+    fetchBooksData();
   }, [domain?.domainId]);
 
   if (loading) {
@@ -257,7 +280,7 @@ export default function DomainDetailPage() {
       id: "books",
       label: "Books",
       icon: Book,
-      content: <BooksTab domainData={domain} />,
+      content: <BooksTab domainData={domain} preloadedData={booksData} />,
       hidden: !hasBooks,
     },
     {

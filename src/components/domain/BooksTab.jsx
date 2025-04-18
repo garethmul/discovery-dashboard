@@ -14,9 +14,9 @@ import axios from 'axios';
 
 const API_KEY = 'test-api-key-123'; // Use the same API key as other requests
 
-const BooksTab = ({ domainData }) => {
-  const [booksData, setBooksData] = useState(null);
-  const [loading, setLoading] = useState(true);
+const BooksTab = ({ domainData, preloadedData }) => {
+  const [booksData, setBooksData] = useState(preloadedData || null);
+  const [loading, setLoading] = useState(preloadedData ? false : true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("books");
   const [searchQuery, setSearchQuery] = useState('');
@@ -121,8 +121,20 @@ const BooksTab = ({ domainData }) => {
       console.log('Domain ID used for API calls:', domainData.domainId || domainData.id);
     }
     
-    fetchBooksData();
-  }, [domainData?.domainId, domainData?.id]);
+    // Only fetch if we don't have preloaded data
+    if (!preloadedData) {
+      fetchBooksData();
+    } else {
+      console.log('Using preloaded books data:', preloadedData);
+      // Set debug info from preloaded data
+      setDebugInfo({
+        source: 'preloaded',
+        dataReceived: !!preloadedData,
+        hasBooks: preloadedData?.books?.length > 0,
+        dataKeys: Object.keys(preloadedData || {})
+      });
+    }
+  }, [domainData?.domainId, domainData?.id, preloadedData]);
 
   const handleTabChange = (value) => {
     setActiveTab(value);
@@ -749,6 +761,16 @@ const BooksTab = ({ domainData }) => {
                     </Button>
                   </div>
                 )}
+                
+                <TabsContent value="books">
+                  {selectedBook ? renderBookDetails() : renderBooksList()}
+                </TabsContent>
+                <TabsContent value="references">
+                  {renderReferencesTable()}
+                </TabsContent>
+                <TabsContent value="images">
+                  {renderImagesTable()}
+                </TabsContent>
               </Tabs>
               
               {searchResults && (
@@ -770,16 +792,6 @@ const BooksTab = ({ domainData }) => {
               )}
             </>
           )}
-          
-          <TabsContent value="books" className={activeTab === "books" ? "" : "hidden"}>
-            {selectedBook ? renderBookDetails() : renderBooksList()}
-          </TabsContent>
-          <TabsContent value="references" className={activeTab === "references" ? "" : "hidden"}>
-            {renderReferencesTable()}
-          </TabsContent>
-          <TabsContent value="images" className={activeTab === "images" ? "" : "hidden"}>
-            {renderImagesTable()}
-          </TabsContent>
         </>
       )}
       
