@@ -83,11 +83,11 @@ const apiRouter = express.Router();
 // Apply authentication middleware to all API routes
 apiRouter.use(authMiddleware);
 
-// Mount these routes WITHOUT the /api prefix - this was the issue!
-// Now they will be accessible at /youtube, /external-links, and /books
-app.use('/youtube', authMiddleware, youtubeRoutes);
-app.use('/external-links', authMiddleware, externalLinksRoutes);
-app.use('/books', authMiddleware, booksRoutes);
+// Mount these routes WITH the /api prefix
+// Now they will be accessible at /api/youtube, /api/external-links, and /api/books
+app.use('/api/youtube', authMiddleware, youtubeRoutes);
+app.use('/api/external-links', authMiddleware, externalLinksRoutes);
+app.use('/api/books', authMiddleware, booksRoutes);
 
 // Define API routes
 // Get domain details by ID

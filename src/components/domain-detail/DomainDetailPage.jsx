@@ -20,9 +20,7 @@ import DomainSEO from "./DomainSEO";
 import DomainSEOCompetitors from "./DomainSEOCompetitors";
 import DomainExternalLinks from "./DomainExternalLinks";
 import { Button } from "../ui/button";
-
-// Add API key constant
-const API_KEY = 'test-api-key-123';
+import axios from "axios";
 
 export default function DomainDetailPage() {
   const { id } = useParams();
@@ -62,8 +60,8 @@ export default function DomainDetailPage() {
       if (!domain?.domainId) return;
       
       try {
-        const response = await fetch(`/api/youtube/${domain.domainId}?apiKey=${API_KEY}`);
-        if (response.ok) {
+        const response = await axios.get(`/api/youtube/${domain.domainId}`);
+        if (response.status === 200) {
           setHasYoutubeData(true);
         }
       } catch (error) {
@@ -119,11 +117,10 @@ export default function DomainDetailPage() {
       if (!domain?.domainId) return;
       
       try {
-        const response = await fetch(`/external-links/${domain.domainId}?apiKey=${API_KEY}`);
-        if (response.ok) {
-          const data = await response.json();
-          console.log('External links data:', data);
-          setHasExternalLinks(data && data.summary && data.summary.length > 0);
+        const response = await axios.get(`/api/external-links/${domain.domainId}`);
+        if (response.status === 200) {
+          console.log('External links data:', response.data);
+          setHasExternalLinks(response.data && response.data.summary && response.data.summary.length > 0);
         }
       } catch (error) {
         console.error("Error checking External Links data:", error);
@@ -141,11 +138,10 @@ export default function DomainDetailPage() {
       
       try {
         console.log(`Prefetching books data for domain ID: ${domain.domainId}`);
-        const response = await fetch(`/books/${domain.domainId}?apiKey=${API_KEY}`);
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Prefetched books data:', data);
-          setBooksData(data);
+        const response = await axios.get(`/api/books/${domain.domainId}`);
+        if (response.status === 200) {
+          console.log('Prefetched books data:', response.data);
+          setBooksData(response.data);
         }
       } catch (error) {
         console.error("Error prefetching books data:", error);
