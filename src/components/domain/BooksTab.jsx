@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
@@ -12,52 +12,83 @@ import { Progress } from "../ui/progress";
 import { Search, RefreshCw, BookOpen, ExternalLink } from "lucide-react";
 import axios from 'axios';
 
+// Create a tab-level cache to prevent redundant API calls
+const booksCache = {};
+
 const BooksTab = ({ domainData, preloadedData }) => {
-  const [booksData, setBooksData] = useState(preloadedData || null);
-  const [loading, setLoading] = useState(preloadedData ? false : true);
+  const [activeTab, setActiveTab] = useState('all');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState("books");
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState(null);
-  const [selectedBook, setSelectedBook] = useState(null);
-  const [debugInfo, setDebugInfo] = useState(null);
+  const [booksData, setBooksData] = useState(null);
+  const [debugInfo, setDebugInfo] = useState({
+    source: 'initializing',
+    dataReceived: false,
+    hasBooks: false,
+    dataKeys: [],
+    domainId: domainData?.domainId || domainData?.id || 'unknown',
+    preloadedAvailable: !!preloadedData,
+    cacheStatus: 'checking',
+    apiCalls: 0
+  });
+
+  // Static cache for books data
+  const booksCache = useMemo(() => ({}), []);
 
   const fetchBooksData = async () => {
-    if (!domainData || !domainData.domainId) return;
+    if (!domainData) return;
+    
+    const domainId = domainData.domainId || domainData.id;
+    
+    // Check cache first
+    if (booksCache[domainId]) {
+      console.log(`Using cached books data for domain ID: ${domainId}`, booksCache[domainId]);
+      setBooksData(booksCache[domainId]);
+      setDebugInfo(prev => ({
+        ...prev, 
+        source: 'cache',
+        dataReceived: true,
+        cacheStatus: 'hit',
+        hasBooks: booksCache[domainId]?.books?.length > 0,
+        dataKeys: Object.keys(booksCache[domainId] || {})
+      }));
+      return;
+    }
     
     setLoading(true);
-    setError(null);
+    setDebugInfo(prev => ({ ...prev, cacheStatus: 'miss' }));
     
     try {
-      // Use the correct domain ID field
-      const domainId = domainData.domainId || domainData.id;
+      console.log(`Fetching books data for domain ID: ${domainId}`);
+      const response = await fetch(`/api/books/${domainId}?apiKey=test-api-key-123`);
       
-      console.log(`Fetching books for domain ID: ${domainId}`);
+      setDebugInfo(prev => ({ ...prev, apiCalls: prev.apiCalls + 1 }));
       
-      // Updated API endpoint format to match other working endpoints
-      const endpoint = `/api/books/${domainId}?apiKey=test-api-key-123`;
-      console.log(`Making API request to: ${endpoint}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       
-      const response = await axios.get(endpoint);
-      console.log('Books data response:', response.data);
+      const data = await response.json();
+      console.log('Books API response:', data);
       
-      setBooksData(response.data);
-      setSearchResults(null);
-      setSelectedBook(null);
-      setDebugInfo({
-        endpoint: endpoint,
-        dataReceived: !!response.data,
-        hasBooks: response.data?.books?.length > 0,
-        dataKeys: Object.keys(response.data || {})
-      });
-    } catch (err) {
-      console.error('Error fetching books data:', err);
-      setError('Failed to load books data. Please try again later.');
-      setDebugInfo({
-        endpoint: `/api/books/${domainData.domainId || domainData.id}?apiKey=test-api-key-123`,
-        error: err.message,
-        status: err.response?.status
-      });
+      // Update cache
+      booksCache[domainId] = data;
+      
+      setBooksData(data);
+      setDebugInfo(prev => ({
+        ...prev,
+        source: 'api',
+        dataReceived: true,
+        hasBooks: data?.books?.length > 0,
+        dataKeys: Object.keys(data || {})
+      }));
+    } catch (error) {
+      console.error("Error fetching books data:", error);
+      setError(error.message);
+      setDebugInfo(prev => ({
+        ...prev,
+        source: 'error',
+        error: error.message
+      }));
     } finally {
       setLoading(false);
     }
@@ -116,7 +147,14 @@ const BooksTab = ({ domainData, preloadedData }) => {
     // Log domainData to help diagnose issues
     console.log('BooksTab: domainData received:', domainData);
     if (domainData) {
-      console.log('Domain ID used for API calls:', domainData.domainId || domainData.id);
+      const domainId = domainData.domainId || domainData.id;
+      console.log('Domain ID used for API calls:', domainId);
+      
+      setDebugInfo(prev => ({
+        ...prev,
+        domainId: domainId,
+        preloadedAvailable: !!preloadedData
+      }));
     }
     
     // Only fetch if we don't have preloaded data
@@ -124,15 +162,27 @@ const BooksTab = ({ domainData, preloadedData }) => {
       fetchBooksData();
     } else {
       console.log('Using preloaded books data:', preloadedData);
+      setBooksData(preloadedData);
+      
+      // Store preloaded data in cache
+      if (domainData) {
+        const domainId = domainData.domainId || domainData.id;
+        if (domainId && !booksCache[domainId]) {
+          booksCache[domainId] = preloadedData;
+          console.log(`Added preloaded data to cache for domain ${domainId}`);
+        }
+      }
+      
       // Set debug info from preloaded data
-      setDebugInfo({
+      setDebugInfo(prev => ({
+        ...prev,
         source: 'preloaded',
         dataReceived: !!preloadedData,
         hasBooks: preloadedData?.books?.length > 0,
         dataKeys: Object.keys(preloadedData || {})
-      });
+      }));
     }
-  }, [domainData?.domainId, domainData?.id, preloadedData]);
+  }, [domainData, preloadedData]);
 
   const handleTabChange = (value) => {
     setActiveTab(value);

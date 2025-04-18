@@ -22,6 +22,9 @@ import DomainExternalLinks from "./DomainExternalLinks";
 import { Button } from "../ui/button";
 import axios from "axios";
 
+// Add a simple cache for books data to prevent duplicate slow API calls
+const booksDataCache = {};
+
 export default function DomainDetailPage() {
   const { id } = useParams();
   const [domain, setDomain] = useState(null);
