@@ -8,6 +8,7 @@ import mysql from 'mysql2/promise';
 import { getDatabaseStatus, runDiagnosticQuery } from './server/api/controllers/diagnosticController.js';
 import authMiddleware from './server/middleware/authMiddleware.js';
 import youtubeRoutes from './backend/src/routes/youtubeRoutes.js';
+import externalLinksRoutes from './backend/src/routes/externalLinksRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -83,6 +84,7 @@ apiRouter.use(authMiddleware);
 
 // Mount YouTube routes first (no authentication)
 app.use('/api/youtube', youtubeRoutes);
+app.use('/api/external-links', externalLinksRoutes);
 
 // Define API routes
 // Get domain details by ID
@@ -916,6 +918,7 @@ apiRouter.get('/seo-competitors/:id', async (req, res) => {
 // Note: The YouTube endpoints are now served by this main server.
 // backend/server.js (port 3010) is no longer needed and can be removed.
 app.use('/api/youtube', youtubeRoutes);
+app.use('/api/external-links', externalLinksRoutes);
 
 // Then mount the API router with authentication for all other /api routes
 app.use('/api', apiRouter);

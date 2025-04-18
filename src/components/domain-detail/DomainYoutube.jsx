@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Search, ChevronDown, ChevronUp, ArrowDownUp, Youtube, Clock, Eye, MessageCircle, Calendar, Film, ListVideo, TrendingUp, Clock4, X } from "lucide-react";
+import { 
+  Search, ChevronDown, ChevronUp, ArrowDownUp, Youtube, 
+  Clock, Eye, MessageCircle, Calendar, Film, ListVideo, 
+  TrendingUp, Clock4, X, Info, FileText, Tag, Monitor, 
+  Database, Settings, Subtitles, MessageSquare
+} from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { 
@@ -30,6 +35,16 @@ import {
   TabsList,
   TabsTrigger,
 } from "../ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
+import { Badge } from "../ui/badge";
+import { ScrollArea } from "../ui/scroll-area";
 
 function formatNumber(num) {
   if (num >= 1000000) {
@@ -278,20 +293,166 @@ export default function DomainYoutube({ domain }) {
               </div>
             </AccordionTrigger>
             <AccordionContent className="px-4 pb-4">
-              <p className="mb-4 text-sm text-muted-foreground">
-                {channel.description}
-              </p>
-              {expandedChannels.includes(channel.channel_id) && (
-                <a 
-                  href={`https://youtube.com/channel/${channel.channel_id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center text-sm font-medium text-primary"
-                >
-                  <Youtube className="mr-1 h-4 w-4" />
-                  View on YouTube
-                </a>
-              )}
+              <Tabs defaultValue="basic" className="w-full">
+                <TabsList className="mb-4">
+                  <TabsTrigger value="basic">Basic Info</TabsTrigger>
+                  <TabsTrigger value="metadata">Metadata</TabsTrigger>
+                  {channel.branding_settings && <TabsTrigger value="branding">Branding</TabsTrigger>}
+                  {channel.related_playlists && <TabsTrigger value="playlists">Related Playlists</TabsTrigger>}
+                </TabsList>
+                
+                <TabsContent value="basic">
+                  <p className="mb-4 text-sm text-muted-foreground">
+                    {channel.description}
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    {channel.custom_url && (
+                      <div className="flex items-center text-sm">
+                        <strong className="mr-2">Custom URL:</strong>
+                        <span>{channel.custom_url}</span>
+                      </div>
+                    )}
+                    {channel.country && (
+                      <div className="flex items-center text-sm">
+                        <strong className="mr-2">Country:</strong>
+                        <span>{channel.country}</span>
+                      </div>
+                    )}
+                    {channel.default_language && (
+                      <div className="flex items-center text-sm">
+                        <strong className="mr-2">Language:</strong>
+                        <span>{channel.default_language}</span>
+                      </div>
+                    )}
+                    {channel.privacy_status && (
+                      <div className="flex items-center text-sm">
+                        <strong className="mr-2">Privacy:</strong>
+                        <span>{channel.privacy_status}</span>
+                      </div>
+                    )}
+                    {channel.published_at && (
+                      <div className="flex items-center text-sm">
+                        <strong className="mr-2">Created:</strong>
+                        <span>{new Date(channel.published_at).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                    {channel.made_for_kids !== null && (
+                      <div className="flex items-center text-sm">
+                        <strong className="mr-2">Made for kids:</strong>
+                        <span>{channel.made_for_kids ? 'Yes' : 'No'}</span>
+                      </div>
+                    )}
+                  </div>
+                  <a 
+                    href={`https://youtube.com/channel/${channel.channel_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center text-sm font-medium text-primary"
+                  >
+                    <Youtube className="mr-1 h-4 w-4" />
+                    View on YouTube
+                  </a>
+                </TabsContent>
+                
+                <TabsContent value="metadata">
+                  <div className="space-y-4">
+                    {channel.topic_categories && channel.topic_categories.length > 0 && (
+                      <div>
+                        <h4 className="text-sm font-semibold mb-2">Topics</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {(typeof channel.topic_categories === 'string' 
+                            ? JSON.parse(channel.topic_categories) 
+                            : channel.topic_categories).map((topic, idx) => (
+                            <span 
+                              key={idx} 
+                              className="text-xs bg-primary/10 text-primary py-1 px-2 rounded-full"
+                            >
+                              {topic.split('/').pop().replace(/_/g, ' ')}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {channel.etag && (
+                        <div className="flex flex-col text-sm">
+                          <strong className="mb-1">ETag</strong>
+                          <span className="text-xs font-mono bg-muted p-1 rounded">{channel.etag}</span>
+                        </div>
+                      )}
+                      {channel.kind && (
+                        <div className="flex flex-col text-sm">
+                          <strong className="mb-1">Kind</strong>
+                          <span>{channel.kind}</span>
+                        </div>
+                      )}
+                      {channel.localized_title && (
+                        <div className="flex flex-col text-sm">
+                          <strong className="mb-1">Localized Title</strong>
+                          <span>{channel.localized_title}</span>
+                        </div>
+                      )}
+                      {channel.content_owner && (
+                        <div className="flex flex-col text-sm">
+                          <strong className="mb-1">Content Owner</strong>
+                          <span>{channel.content_owner}</span>
+                        </div>
+                      )}
+                      {channel.audit_details && (
+                        <div className="flex flex-col text-sm col-span-2">
+                          <strong className="mb-1">Audit Details</strong>
+                          <pre className="bg-muted p-2 rounded text-xs overflow-x-auto">
+                            {JSON.stringify(channel.audit_details, null, 2)}
+                          </pre>
+                        </div>
+                      )}
+                      {channel.localizations && (
+                        <div className="flex flex-col text-sm col-span-2">
+                          <strong className="mb-1">Localizations</strong>
+                          <pre className="bg-muted p-2 rounded text-xs overflow-x-auto">
+                            {JSON.stringify(channel.localizations, null, 2)}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                {channel.branding_settings && (
+                  <TabsContent value="branding">
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-semibold">Branding Settings</h4>
+                      <pre className="bg-muted p-3 rounded text-xs overflow-x-auto max-h-60">
+                        {JSON.stringify(channel.branding_settings, null, 2)}
+                      </pre>
+                    </div>
+                  </TabsContent>
+                )}
+                
+                {channel.related_playlists && (
+                  <TabsContent value="playlists">
+                    <div className="space-y-4">
+                      <h4 className="text-sm font-semibold">Related Playlists</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {Object.entries(channel.related_playlists).map(([key, value]) => (
+                          <div key={key} className="border rounded p-3">
+                            <div className="font-medium capitalize">{key}</div>
+                            <a 
+                              href={`https://youtube.com/playlist?list=${value}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-primary"
+                            >
+                              {value}
+                            </a>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </TabsContent>
+                )}
+              </Tabs>
             </AccordionContent>
           </AccordionItem>
         ))}
@@ -665,37 +826,201 @@ export default function DomainYoutube({ domain }) {
                   {formatDuration(video.duration)}
                 </div>
               </div>
-              <div className="flex flex-col justify-between p-4">
-                <div>
-                  <h3 className="text-lg font-semibold">
-                    <a 
-                      href={`https://youtube.com/watch?v=${video.video_id}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="hover:text-primary"
-                    >
-                      {video.title}
-                    </a>
-                  </h3>
-                  <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-                    {video.description}
-                  </p>
+              <div className="p-4 flex-1">
+                <h3 className="text-lg font-medium line-clamp-2">{video.title}</h3>
+                <p className="mt-1 text-sm text-muted-foreground line-clamp-3">
+                  {video.description || "No description"}
+                </p>
+                
+                {/* Additional metadata section */}
+                <div className="mt-3 border-t pt-3">
+                  <Tabs defaultValue="stats" className="w-full">
+                    <TabsList className="mb-2">
+                      <TabsTrigger value="stats" className="text-xs">Stats</TabsTrigger>
+                      {video.tags && <TabsTrigger value="tags" className="text-xs">Tags</TabsTrigger>}
+                      {video.topics && <TabsTrigger value="topics" className="text-xs">Topics</TabsTrigger>}
+                      {video.captions && video.captions.length > 0 && (
+                        <TabsTrigger value="captions" className="text-xs">Captions</TabsTrigger>
+                      )}
+                      {video.comments && video.comments.length > 0 && (
+                        <TabsTrigger value="comments" className="text-xs">Comments</TabsTrigger>
+                      )}
+                      <TabsTrigger value="technical" className="text-xs">Technical</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="stats">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        <div className="flex flex-col">
+                          <span className="text-xs text-muted-foreground">Views</span>
+                          <span className="font-medium">{formatNumber(video.view_count || 0)}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-xs text-muted-foreground">Likes</span>
+                          <span className="font-medium">{formatNumber(video.like_count || 0)}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-xs text-muted-foreground">Comments</span>
+                          <span className="font-medium">{formatNumber(video.comment_count || 0)}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-xs text-muted-foreground">Published</span>
+                          <span className="font-medium">{new Date(video.published_at).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    </TabsContent>
+                    
+                    {video.tags && (
+                      <TabsContent value="tags">
+                        <div className="flex flex-wrap gap-1">
+                          {(typeof video.tags === 'string' 
+                            ? JSON.parse(video.tags) 
+                            : video.tags).slice(0, 10).map((tag, idx) => (
+                            <span 
+                              key={idx} 
+                              className="text-xs bg-muted px-2 py-1 rounded-full"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                          {(typeof video.tags === 'string' 
+                            ? JSON.parse(video.tags) 
+                            : video.tags).length > 10 && (
+                            <span className="text-xs text-muted-foreground">
+                              +{(typeof video.tags === 'string' 
+                                ? JSON.parse(video.tags) 
+                                : video.tags).length - 10} more
+                            </span>
+                          )}
+                        </div>
+                      </TabsContent>
+                    )}
+                    
+                    {video.topics && (
+                      <TabsContent value="topics">
+                        <div className="flex flex-wrap gap-1">
+                          {(typeof video.topics === 'string' 
+                            ? JSON.parse(video.topics) 
+                            : video.topics).map((topic, idx) => (
+                            <span 
+                              key={idx} 
+                              className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full"
+                            >
+                              {typeof topic === 'string' 
+                                ? topic.split('/').pop().replace(/_/g, ' ') 
+                                : topic.topic_category 
+                                  ? topic.topic_category.split('/').pop().replace(/_/g, ' ')
+                                  : 'Unknown'}
+                            </span>
+                          ))}
+                        </div>
+                      </TabsContent>
+                    )}
+                    
+                    {video.captions && video.captions.length > 0 && (
+                      <TabsContent value="captions">
+                        <div className="max-h-24 overflow-y-auto">
+                          <table className="w-full text-xs">
+                            <thead>
+                              <tr>
+                                <th className="text-left">Language</th>
+                                <th className="text-left">Type</th>
+                                <th className="text-left">Auto-generated</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {video.captions.map((caption, idx) => (
+                                <tr key={idx} className="border-b border-muted">
+                                  <td className="py-1">{caption.language || 'Unknown'}</td>
+                                  <td className="py-1">{caption.caption_type || 'Standard'}</td>
+                                  <td className="py-1">{caption.auto_generated ? 'Yes' : 'No'}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </TabsContent>
+                    )}
+                    
+                    {video.comments && video.comments.length > 0 && (
+                      <TabsContent value="comments">
+                        <div className="max-h-24 overflow-y-auto space-y-2">
+                          {video.comments.slice(0, 3).map((comment, idx) => (
+                            <div key={idx} className="text-xs space-y-1 border-b border-muted pb-2">
+                              <div className="font-medium">{comment.author_name || 'Anonymous'}</div>
+                              <p className="line-clamp-2">{comment.text}</p>
+                              <div className="flex justify-between text-muted-foreground">
+                                <span>{new Date(comment.published_at).toLocaleDateString()}</span>
+                                <span>{comment.like_count || 0} likes</span>
+                              </div>
+                            </div>
+                          ))}
+                          {video.comments.length > 3 && (
+                            <div className="text-xs text-muted-foreground text-center">
+                              + {video.comments.length - 3} more comments
+                            </div>
+                          )}
+                        </div>
+                      </TabsContent>
+                    )}
+                    
+                    <TabsContent value="technical">
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="flex flex-col">
+                          <span className="text-muted-foreground">Definition</span>
+                          <span>{video.definition === 'hd' ? 'HD' : 'SD'}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-muted-foreground">License</span>
+                          <span>{video.license || 'Standard YouTube'}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-muted-foreground">Privacy</span>
+                          <span className="capitalize">{video.privacy_status || 'Public'}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-muted-foreground">Made for kids</span>
+                          <span>{video.made_for_kids ? 'Yes' : 'No'}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-muted-foreground">Licensed content</span>
+                          <span>{video.licensed_content ? 'Yes' : 'No'}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-muted-foreground">Caption available</span>
+                          <span>{video.caption_available ? 'Yes' : 'No'}</span>
+                        </div>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
                 </div>
-                <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-                  <span className="flex items-center text-muted-foreground">
-                    <Calendar className="mr-1 h-4 w-4" />
-                    {new Date(video.published_at).toLocaleDateString()}
-                  </span>
-                  <span className="flex items-center text-muted-foreground">
-                    <Eye className="mr-1 h-4 w-4" />
-                    {formatNumber(video.view_count)} views
-                  </span>
-                  {video.comment_count > 0 && (
-                    <span className="flex items-center text-muted-foreground">
+                
+                <div className="mt-4 flex items-center justify-between">
+                  <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                    <div className="flex items-center">
+                      <Eye className="mr-1 h-4 w-4" />
+                      {formatNumber(video.view_count || 0)}
+                    </div>
+                    <div className="flex items-center">
                       <MessageCircle className="mr-1 h-4 w-4" />
-                      {formatNumber(video.comment_count)} comments
-                    </span>
-                  )}
+                      {formatNumber(video.comment_count || 0)}
+                    </div>
+                    <div className="flex items-center">
+                      <Clock4 className="mr-1 h-4 w-4" />
+                      {formatDuration(video.duration)}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <a
+                      href={`https://youtube.com/watch?v=${video.video_id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center text-sm font-medium text-primary"
+                    >
+                      <Youtube className="mr-1 h-4 w-4" />
+                      Watch
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
@@ -784,6 +1109,86 @@ export default function DomainYoutube({ domain }) {
             </PaginationItem>
           </PaginationContent>
         </Pagination>
+      )}
+      
+      {/* YouTube extraction job history */}
+      {youtubeData.jobs && youtubeData.jobs.length > 0 && (
+        <div className="space-y-4 mt-8 border-t pt-8">
+          <h3 className="text-lg font-medium flex items-center">
+            <Clock className="mr-2 h-5 w-5 text-primary" />
+            Extraction History
+          </h3>
+          
+          <div className="space-y-4">
+            {youtubeData.jobs.slice(0, 5).map((job) => (
+              <div 
+                key={job.id}
+                className="rounded-md border bg-card p-4 shadow-sm"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h4 className="font-medium">
+                      Job #{job.id}
+                      <span 
+                        className={`ml-2 text-xs py-1 px-2 rounded-full ${
+                          job.status === 'completed' ? 'bg-green-100 text-green-800' :
+                          job.status === 'failed' ? 'bg-red-100 text-red-800' :
+                          job.status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}
+                      >
+                        {job.status}
+                      </span>
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(job.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                  
+                  {job.quota_credits && (
+                    <div className="text-right">
+                      <span className="text-xs font-medium bg-yellow-100 text-yellow-800 py-1 px-2 rounded-full">
+                        {job.quota_credits} API credits used
+                      </span>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p><strong>Source:</strong> {job.source || 'Manual'}</p>
+                    <p><strong>Channel ID:</strong> {job.channel_id || 'Discovered from domain'}</p>
+                    {job.source_url && <p><strong>Source URL:</strong> {job.source_url}</p>}
+                  </div>
+                  
+                  {job.quota_usage_details && (
+                    <div>
+                      <p className="font-medium mb-1">Quota Usage Breakdown:</p>
+                      <pre className="text-xs bg-muted p-2 rounded overflow-auto max-h-20">
+                        {JSON.stringify(job.quota_usage_details, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+                
+                {job.result && (
+                  <div className="mt-3 pt-3 border-t">
+                    <p className="font-medium text-sm mb-1">Result Data:</p>
+                    <pre className="text-xs bg-muted p-2 rounded overflow-auto max-h-20">
+                      {JSON.stringify(job.result, null, 2)}
+                    </pre>
+                  </div>
+                )}
+              </div>
+            ))}
+            
+            {youtubeData.jobs.length > 5 && (
+              <p className="text-sm text-center text-muted-foreground">
+                + {youtubeData.jobs.length - 5} more extraction jobs
+              </p>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

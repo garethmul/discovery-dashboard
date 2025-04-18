@@ -29,6 +29,7 @@ import PagesTab from '../components/domain/PagesTab';
 import BlogTab from '../components/domain/BlogTab';
 import PlaceholderTab from '../components/domain/PlaceholderTab';
 import AIAnalysisTab from '../components/domain/AIAnalysisTab';
+import ExternalLinksTab from '../components/domain/ExternalLinksTab';
 
 // Map URL paths to tab indexes
 const tabPathMap = {
@@ -40,20 +41,21 @@ const tabPathMap = {
   'media': 5,
   'feeds': 6,
   'social': 7,
-  'external-links': 8,
-  'apps': 9,
-  'events': 10,
-  'podcasts': 11,
-  'jobs': 12,
-  'isbn': 13,
-  'opengraph': 14,
-  'youtube': 15,
-  'schema': 16,
-  'brand': 17,
-  'colors': 18,
-  'ai-analysis': 19,
-  'crawl-status': 20,
-  'debug': 21
+  'links-and-partners': 8,
+  'external-links': 9,
+  'apps': 10,
+  'events': 11,
+  'podcasts': 12,
+  'jobs': 13,
+  'isbn': 14,
+  'opengraph': 15,
+  'youtube': 16,
+  'schema': 17,
+  'brand': 18,
+  'colors': 19,
+  'ai-analysis': 20,
+  'crawl-status': 21,
+  'debug': 22
 };
 
 // Map tab indexes to URL paths (reverse of above)
@@ -224,6 +226,7 @@ const DomainDetails = () => {
               <Tab label="Media" />
               <Tab label="Feeds" />
               <Tab label="Social" />
+              <Tab label="Links & Partners" />
               <Tab label="External Links" />
               <Tab label="Apps" />
               <Tab label="Events" />
@@ -251,6 +254,7 @@ const DomainDetails = () => {
             <Route path="/media" element={<PlaceholderTab tabName="Media" domainData={domainData} dataField="media" />} />
             <Route path="/feeds" element={<PlaceholderTab tabName="Feeds" domainData={domainData} dataField="feeds" />} />
             <Route path="/social" element={<PlaceholderTab tabName="Social" domainData={domainData} dataField="social" />} />
+            <Route path="/links-and-partners" element={<ExternalLinksTab domainData={domainData} />} />
             <Route path="/external-links" element={<PlaceholderTab tabName="External Links" domainData={domainData} dataField="externalLinks" />} />
             <Route path="/apps" element={<PlaceholderTab tabName="Apps" domainData={domainData} dataField="apps" />} />
             <Route path="/events" element={<PlaceholderTab tabName="Events" domainData={domainData} dataField="events" />} />
