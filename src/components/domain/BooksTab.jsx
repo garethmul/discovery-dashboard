@@ -20,6 +20,9 @@ const BooksTab = ({ domainData, preloadedData }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [booksData, setBooksData] = useState(null);
+  const [selectedBook, setSelectedBook] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState(null);
   const [debugInfo, setDebugInfo] = useState({
     source: 'initializing',
     dataReceived: false,
