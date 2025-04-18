@@ -85,9 +85,9 @@ apiRouter.use(authMiddleware);
 
 // Mount these routes WITHOUT the /api prefix - this was the issue!
 // Now they will be accessible at /youtube, /external-links, and /books
-app.use('/youtube', youtubeRoutes);
-app.use('/external-links', externalLinksRoutes);
-app.use('/books', booksRoutes);
+app.use('/youtube', authMiddleware, youtubeRoutes);
+app.use('/external-links', authMiddleware, externalLinksRoutes);
+app.use('/books', authMiddleware, booksRoutes);
 
 // Define API routes
 // Get domain details by ID
