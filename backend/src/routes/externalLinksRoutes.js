@@ -5,7 +5,7 @@ import logger from '../utils/logger.js';
 const router = express.Router();
 
 /**
- * GET /api/external-links/:domainId
+ * GET /external-links/:domainId
  * Retrieve all external links data for a domain
  */
 router.get('/:domainId', async (req, res) => {
@@ -31,7 +31,7 @@ router.get('/:domainId', async (req, res) => {
 });
 
 /**
- * GET /api/external-links/:domainId/domain/:externalDomain
+ * GET /external-links/:domainId/domain/:externalDomain
  * Retrieve details for a specific external domain
  */
 router.get('/:domainId/domain/:externalDomain', async (req, res) => {
@@ -62,7 +62,7 @@ router.get('/:domainId/domain/:externalDomain', async (req, res) => {
 });
 
 /**
- * GET /api/external-links/:domainId/search
+ * GET /external-links/:domainId/search
  * Search across all external links
  */
 router.get('/:domainId/search', async (req, res) => {

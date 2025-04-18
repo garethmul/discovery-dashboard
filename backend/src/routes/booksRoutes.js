@@ -5,7 +5,7 @@ import logger from '../utils/logger.js';
 const router = express.Router();
 
 /**
- * GET /api/books/:domainId
+ * GET /books/:domainId
  * Retrieve all books data for a domain
  */
 router.get('/:domainId', async (req, res) => {
@@ -31,7 +31,7 @@ router.get('/:domainId', async (req, res) => {
 });
 
 /**
- * GET /api/books/:domainId/isbn/:isbn
+ * GET /books/:domainId/isbn/:isbn
  * Retrieve details for a specific book by ISBN
  */
 router.get('/:domainId/isbn/:isbn', async (req, res) => {
@@ -62,7 +62,7 @@ router.get('/:domainId/isbn/:isbn', async (req, res) => {
 });
 
 /**
- * GET /api/books/:domainId/search
+ * GET /books/:domainId/search
  * Search across all books for a domain
  */
 router.get('/:domainId/search', async (req, res) => {
