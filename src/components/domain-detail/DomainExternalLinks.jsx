@@ -36,7 +36,17 @@ export default function DomainExternalLinks({ domain }) {
       console.log('External links data:', data);
       
       setExternalLinks(data);
-      setFilteredLinks(data.links || []);
+      
+      // Create a more usable links array from the details if available
+      const detailsArray = data.details || [];
+      const formattedLinks = detailsArray.map(detail => ({
+        url: detail.target_url,
+        text: detail.link_text,
+        context: detail.element_html,
+        page_url: detail.source_url
+      }));
+      
+      setFilteredLinks(formattedLinks);
     } catch (err) {
       console.error('Error fetching external links:', err);
       setError('Failed to load external links data. Please try again later.');
@@ -50,25 +60,43 @@ export default function DomainExternalLinks({ domain }) {
   }, [domain?.domainId]);
 
   useEffect(() => {
-    if (!externalLinks?.links) return;
+    if (!externalLinks?.details) return;
     
     if (!searchTerm.trim()) {
-      setFilteredLinks(externalLinks.links);
+      // Recreate formatted links array when no search is active
+      const detailsArray = externalLinks.details || [];
+      const formattedLinks = detailsArray.map(detail => ({
+        url: detail.target_url,
+        text: detail.link_text,
+        context: detail.element_html,
+        page_url: detail.source_url
+      }));
+      
+      setFilteredLinks(formattedLinks);
       return;
     }
     
     const term = searchTerm.toLowerCase();
-    const filtered = externalLinks.links.filter(link => 
-      link.url.toLowerCase().includes(term) || 
-      link.text?.toLowerCase().includes(term) || 
-      link.context?.toLowerCase().includes(term)
+    // Filter from the original details data
+    const filteredDetails = externalLinks.details.filter(detail => 
+      detail.target_url.toLowerCase().includes(term) || 
+      detail.link_text?.toLowerCase().includes(term) || 
+      detail.element_html?.toLowerCase().includes(term)
     );
     
-    setFilteredLinks(filtered);
+    // Convert filtered details to our formatted links format
+    const formattedLinks = filteredDetails.map(detail => ({
+      url: detail.target_url,
+      text: detail.link_text,
+      context: detail.element_html,
+      page_url: detail.source_url
+    }));
+    
+    setFilteredLinks(formattedLinks);
   }, [searchTerm, externalLinks]);
 
   const renderDomainsSection = () => {
-    const domains = externalLinks?.domains || [];
+    const domains = externalLinks?.summary || [];
     
     if (domains.length === 0) {
       return (
@@ -91,10 +119,10 @@ export default function DomainExternalLinks({ domain }) {
             {domains.map((domain, index) => (
               <Badge 
                 key={index} 
-                variant={domain.count > 10 ? "default" : "outline"}
+                variant={domain.link_count > 10 ? "default" : "outline"}
                 className="flex items-center gap-1"
               >
-                {domain.domain} <span className="text-xs">({domain.count})</span>
+                {domain.external_domain} <span className="text-xs">({domain.link_count})</span>
               </Badge>
             ))}
           </div>
@@ -169,8 +197,8 @@ export default function DomainExternalLinks({ domain }) {
   const renderStats = () => {
     if (!externalLinks) return null;
     
-    const totalLinks = externalLinks.links?.length || 0;
-    const uniqueDomains = externalLinks.domains?.length || 0;
+    const totalLinks = externalLinks.details?.length || 0;
+    const uniqueDomains = externalLinks.summary?.length || 0;
     
     return (
       <div className="grid grid-cols-2 gap-4 mb-6">
