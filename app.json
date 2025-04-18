@@ -9,6 +9,10 @@
     "USE_NPM_INSTALL": {
       "description": "Use npm install instead of npm ci",
       "value": "true"
+    },
+    "NPM_CONFIG_OPTIONAL": {
+      "description": "Install optional dependencies",
+      "value": "true"
     }
   },
   "buildpacks": [
