@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Apr 17, 2025 at 08:26 AM
+-- Generation Time: Apr 18, 2025 at 07:00 PM
 -- Server version: 8.4.4
 -- PHP Version: 8.4.3
 
@@ -165,6 +165,114 @@ CREATE TABLE `background_jobs` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `books`
+--
+
+CREATE TABLE `books` (
+  `id` int NOT NULL,
+  `isbn` varchar(20) NOT NULL,
+  `isbn13` varchar(20) DEFAULT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `title_long` text,
+  `dewey_decimal` varchar(50) DEFAULT NULL,
+  `binding` varchar(100) DEFAULT NULL,
+  `publisher` varchar(255) DEFAULT NULL,
+  `language` varchar(50) DEFAULT NULL,
+  `date_published` date DEFAULT NULL,
+  `edition` varchar(100) DEFAULT NULL,
+  `pages` int DEFAULT NULL,
+  `dimensions` varchar(255) DEFAULT NULL,
+  `overview` text,
+  `image` varchar(255) DEFAULT NULL,
+  `image_original` varchar(255) DEFAULT NULL,
+  `msrp` decimal(10,2) DEFAULT NULL,
+  `excerpt` text,
+  `synopsis` text,
+  `dimensions_length_value` decimal(10,2) DEFAULT NULL,
+  `dimensions_length_unit` varchar(10) DEFAULT NULL,
+  `dimensions_width_value` decimal(10,2) DEFAULT NULL,
+  `dimensions_width_unit` varchar(10) DEFAULT NULL,
+  `dimensions_height_value` decimal(10,2) DEFAULT NULL,
+  `dimensions_height_unit` varchar(10) DEFAULT NULL,
+  `dimensions_weight_value` decimal(10,2) DEFAULT NULL,
+  `dimensions_weight_unit` varchar(10) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `last_api_fetch` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `book_authors`
+--
+
+CREATE TABLE `book_authors` (
+  `id` int NOT NULL,
+  `name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `book_author_mapping`
+--
+
+CREATE TABLE `book_author_mapping` (
+  `id` int NOT NULL,
+  `book_id` int NOT NULL,
+  `author_id` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `book_other_isbns`
+--
+
+CREATE TABLE `book_other_isbns` (
+  `id` int NOT NULL,
+  `book_id` int NOT NULL,
+  `isbn` varchar(20) NOT NULL,
+  `binding` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `book_prices`
+--
+
+CREATE TABLE `book_prices` (
+  `id` int NOT NULL,
+  `book_id` int NOT NULL,
+  `book_condition` varchar(100) DEFAULT NULL,
+  `merchant` varchar(255) DEFAULT NULL,
+  `merchant_logo` varchar(255) DEFAULT NULL,
+  `merchant_logo_offset_x` int DEFAULT NULL,
+  `merchant_logo_offset_y` int DEFAULT NULL,
+  `shipping` varchar(100) DEFAULT NULL,
+  `price` decimal(10,2) DEFAULT NULL,
+  `total` decimal(10,2) DEFAULT NULL,
+  `link` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `book_reviews`
+--
+
+CREATE TABLE `book_reviews` (
+  `id` int NOT NULL,
+  `book_id` int NOT NULL,
+  `review_text` text
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `book_search_cache`
 --
 
@@ -174,6 +282,63 @@ CREATE TABLE `book_search_cache` (
   `results` longtext NOT NULL,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `book_subjects`
+--
+
+CREATE TABLE `book_subjects` (
+  `id` int NOT NULL,
+  `name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `book_subject_mapping`
+--
+
+CREATE TABLE `book_subject_mapping` (
+  `id` int NOT NULL,
+  `book_id` int NOT NULL,
+  `subject_id` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `brandfetch_colors`
+--
+
+CREATE TABLE `brandfetch_colors` (
+  `id` int NOT NULL,
+  `domain_id` int NOT NULL,
+  `color_type` varchar(50) DEFAULT NULL,
+  `hex_value` char(7) DEFAULT NULL,
+  `brightness` int DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `brandfetch_company_info`
+--
+
+CREATE TABLE `brandfetch_company_info` (
+  `id` int NOT NULL,
+  `domain_id` int NOT NULL,
+  `employees` int DEFAULT NULL,
+  `founded_year` int DEFAULT NULL,
+  `industry` varchar(255) DEFAULT NULL,
+  `company_type` varchar(50) DEFAULT NULL,
+  `location_city` varchar(255) DEFAULT NULL,
+  `location_country` varchar(255) DEFAULT NULL,
+  `location_country_code` char(2) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -193,6 +358,55 @@ CREATE TABLE `brandfetch_data` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `brandfetch_links`
+--
+
+CREATE TABLE `brandfetch_links` (
+  `id` int NOT NULL,
+  `domain_id` int NOT NULL,
+  `platform` varchar(50) DEFAULT NULL,
+  `url` text,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `brandfetch_logos`
+--
+
+CREATE TABLE `brandfetch_logos` (
+  `id` int NOT NULL,
+  `domain_id` int NOT NULL,
+  `logo_type` varchar(50) DEFAULT NULL,
+  `theme` varchar(50) DEFAULT NULL,
+  `url` text,
+  `format` varchar(10) DEFAULT NULL,
+  `width` int DEFAULT NULL,
+  `height` int DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `brandfetch_metadata`
+--
+
+CREATE TABLE `brandfetch_metadata` (
+  `id` int NOT NULL,
+  `domain_id` int NOT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `description` text,
+  `long_description` text,
+  `quality_score` int DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `cached_books`
 --
 
@@ -201,6 +415,93 @@ CREATE TABLE `cached_books` (
   `isbn` varchar(20) NOT NULL,
   `data` json NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `charity`
+--
+
+CREATE TABLE `charity` (
+  `date_of_extract` date DEFAULT NULL COMMENT 'The date that the extract was taken from the main dataset',
+  `organisation_number` int NOT NULL COMMENT 'The organisation number for the charity. This is the index value for the charity',
+  `registered_charity_number` int NOT NULL,
+  `linked_charity_number` int DEFAULT NULL COMMENT 'A number that uniquely identifies the subsidiary or group member associated with a registered charity. Used for user identification purposes where the subsidiary is known by the parent registration number and the subsidiary number. The main parent charity has a linked_charity_number of 0',
+  `charity_name` varchar(255) DEFAULT NULL COMMENT 'The Main Name of the Charity',
+  `charity_type` varchar(50) DEFAULT NULL COMMENT 'The type of the charity displayed on the public register of charities. Only the main parent charity will have a value for this field',
+  `charity_registration_status` varchar(50) DEFAULT NULL COMMENT 'The charity registration status indicates whether a charity is registered or removed',
+  `date_of_registration` date DEFAULT NULL COMMENT 'The date the charity was registered with the Charity Commission',
+  `date_of_removal` date DEFAULT NULL COMMENT 'This is the date the charity was removed from the Register of Charities. This will not necessarily be the same date that the charity ceased to exist or ceased to operate. For non-removed charities the field is NULL',
+  `charity_reporting_status` varchar(50) DEFAULT NULL COMMENT 'The current reporting status of the charity',
+  `latest_acc_fin_period_start_date` date DEFAULT NULL,
+  `latest_acc_fin_period_end_date` date DEFAULT NULL,
+  `latest_income` decimal(15,2) DEFAULT NULL COMMENT 'The latest income submitted by the charity. This is the total gross income submitted on part A of the annual return submission',
+  `latest_expenditure` decimal(15,2) DEFAULT NULL COMMENT 'The latest expenditure submitted by a charity. This is the expenditure submitted on part A of the annual return submission',
+  `charity_contact_address1` varchar(255) DEFAULT NULL COMMENT 'Charity Address Line 1',
+  `charity_contact_address2` varchar(255) DEFAULT NULL COMMENT 'Charity Address Line 2',
+  `charity_contact_address3` varchar(255) DEFAULT NULL COMMENT 'Charity Address Line 3',
+  `charity_contact_address4` varchar(255) DEFAULT NULL COMMENT 'Charity Address Line 4',
+  `charity_contact_address5` varchar(255) DEFAULT NULL COMMENT 'Charity Address Line 5',
+  `charity_contact_postcode` varchar(20) DEFAULT NULL COMMENT 'Charity Postcode',
+  `charity_contact_phone` varchar(20) DEFAULT NULL COMMENT 'Charity Public Telephone Number',
+  `charity_contact_email` varchar(100) DEFAULT NULL COMMENT 'Charity Public email address',
+  `charity_contact_web` varchar(255) DEFAULT NULL COMMENT 'Charity Website Address',
+  `charity_company_registration_number` varchar(50) DEFAULT NULL COMMENT 'Registered Company Number of the Charity as assigned by Companies House. Integer returned as string',
+  `charity_insolvent` tinyint(1) DEFAULT NULL COMMENT 'Indicates if the charity is insolvent',
+  `charity_in_administration` tinyint(1) DEFAULT NULL COMMENT 'Indicates if the charity is in administration',
+  `charity_previously_excepted` tinyint(1) DEFAULT NULL COMMENT 'Indicates the charity was previously an excepted charity',
+  `charity_is_cdf_or_cif` varchar(50) DEFAULT NULL COMMENT 'Indicates whether the charity is a Common Investment Fund or Common Deposit Fund',
+  `charity_is_cio` tinyint(1) DEFAULT NULL COMMENT 'Indicates whether the charity is a Charitable Incorporated Organisation',
+  `cio_is_dissolved` tinyint(1) DEFAULT NULL COMMENT 'Indicates the CIO is to be dissolved',
+  `date_cio_dissolution_notice` date DEFAULT NULL,
+  `charity_activities` text COMMENT 'The charity activities, the trustees description of what they do and who they help',
+  `charity_gift_aid` tinyint(1) DEFAULT NULL COMMENT 'Indicates whether the charity is registered for gift aid with HMRC. True, False, NULL (not known)',
+  `charity_has_land` tinyint(1) DEFAULT NULL COMMENT 'Indicates whether the charity owns or leases any land or buildings. True, False, NULL (not known)'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `charity_analysis`
+--
+
+CREATE TABLE `charity_analysis` (
+  `id` int NOT NULL,
+  `organisation_number` int NOT NULL,
+  `christianity_score` int NOT NULL,
+  `is_church` enum('Yes','No','Unsure') DEFAULT NULL,
+  `christianity_score_justification` text NOT NULL,
+  `charity_analysis` text NOT NULL,
+  `keywords` json NOT NULL,
+  `created_at` datetime NOT NULL,
+  `openai_model` varchar(100) DEFAULT NULL,
+  `input_tokens` int DEFAULT NULL,
+  `output_tokens` int DEFAULT NULL,
+  `total_tokens` int DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `charity_annual_return_history`
+--
+
+CREATE TABLE `charity_annual_return_history` (
+  `date_of_extract` date DEFAULT NULL COMMENT 'The date that the extract was taken from the main dataset',
+  `organisation_number` int NOT NULL COMMENT 'The organisation number for the charity. This is the index value for the charity',
+  `registered_charity_number` int DEFAULT NULL COMMENT 'The registration number of the registered organisation allocated by the Commission',
+  `fin_period_start_date` date NOT NULL COMMENT 'The start date of the financial period which is detailed for the charity',
+  `fin_period_end_date` date DEFAULT NULL COMMENT 'The end date of the financial period which is detailed for the charity',
+  `ar_cycle_reference` varchar(50) DEFAULT NULL COMMENT 'The annual return cycle to which the submission details relate',
+  `reporting_due_date` date DEFAULT NULL COMMENT 'The due date of the financial period which is detailed for the charity',
+  `date_annual_return_received` date DEFAULT NULL COMMENT 'The date the annual return was received for the financial period which is detailed for the charity',
+  `date_accounts_received` date DEFAULT NULL COMMENT 'The date the charity accounts were received for the financial period which is detailed for the charity',
+  `total_gross_income` decimal(15,2) DEFAULT NULL COMMENT 'The total gross income reported on Part A of the annual return for the financial period detailed',
+  `total_gross_expenditure` decimal(15,2) DEFAULT NULL COMMENT 'The total gross expenditure reported on Part A of the annual return for the financial period detailed',
+  `accounts_qualified` tinyint(1) DEFAULT NULL COMMENT 'Indicates whether the accounts have a qualified opinion. (True or NULL)',
+  `suppression_ind` tinyint(1) DEFAULT NULL COMMENT 'An indicator of whether the finances for this year are currently suppressed. 1 = Supressed, 0 = not supressed',
+  `suppression_type` varchar(50) DEFAULT NULL COMMENT 'The type of suppression that is applied to the finances for this year'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -651,14 +952,39 @@ CREATE TABLE `domain_events` (
 CREATE TABLE `domain_external_links` (
   `id` int NOT NULL,
   `domain_id` int NOT NULL,
-  `external_domain` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `external_domain` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `link_count` int DEFAULT '1',
   `is_partner` tinyint(1) DEFAULT '0',
   `partner_confidence` float DEFAULT '0',
-  `partner_context` text COLLATE utf8mb4_unicode_ci,
-  `example_url` varchar(1024) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `partner_context` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `example_url` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `domain_external_links_detail`
+--
+
+CREATE TABLE `domain_external_links_detail` (
+  `id` int NOT NULL,
+  `domain_id` int NOT NULL,
+  `external_domain` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `source_url` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `target_url` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `link_text` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `is_partner` tinyint(1) DEFAULT '0',
+  `partner_context` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `img_src` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `img_alt` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `page_id` int DEFAULT NULL,
+  `element_html` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `seen_in_last_crawl` tinyint(1) DEFAULT '0',
+  `is_active` tinyint(1) DEFAULT '1',
+  `last_seen_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -963,6 +1289,21 @@ CREATE TABLE `domain_ranked_keywords` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `domain_robots`
+--
+
+CREATE TABLE `domain_robots` (
+  `id` int NOT NULL,
+  `domain` varchar(255) NOT NULL,
+  `content` text,
+  `last_fetched` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `domain_rss_feeds`
 --
 
@@ -1124,6 +1465,31 @@ CREATE TABLE `domain_social_podcast` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `domain_website_metadata`
+--
+
+CREATE TABLE `domain_website_metadata` (
+  `id` int NOT NULL,
+  `page_id` int NOT NULL,
+  `domain_id` int NOT NULL,
+  `url` text NOT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `description` text,
+  `keywords` text,
+  `author` varchar(255) DEFAULT NULL,
+  `language` varchar(10) DEFAULT NULL,
+  `meta_robots` varchar(255) DEFAULT NULL,
+  `canonical_url` text,
+  `favicon_url` text,
+  `og_image_url` text,
+  `og_type` varchar(50) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `domain_youtube_captions`
 --
 
@@ -1145,7 +1511,7 @@ CREATE TABLE `domain_youtube_captions` (
 --
 
 CREATE TABLE `domain_youtube_channels` (
-  `domain_id` int NOT NULL COMMENT 'Primary key linking to domain entity. Identifies which domain owns this YouTube channel.',
+  `domain_id` int NOT NULL COMMENT 'reference to domain id in domain_info table\r\n',
   `channel_id` varchar(24) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'YouTube''s unique identifier for the channel (starts with "UC").',
   `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'The display name/title of the YouTube channel.',
   `description` text COLLATE utf8mb4_unicode_ci COMMENT 'The full channel description as provided by the channel owner.',
@@ -1155,7 +1521,25 @@ CREATE TABLE `domain_youtube_channels` (
   `view_count` bigint DEFAULT NULL COMMENT 'Total view count across all videos on the channel.',
   `video_count` int DEFAULT NULL COMMENT 'Total number of videos uploaded to the channel.',
   `country` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Country code where the channel is based (if provided).',
-  `topic_categories` text COLLATE utf8mb4_unicode_ci COMMENT 'JSON array of Wikipedia category URLs representing the channel''s topics.'
+  `topic_categories` text COLLATE utf8mb4_unicode_ci COMMENT 'JSON array of Wikipedia category URLs representing the channel''s topics.',
+  `etag` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Entity tag for the resource',
+  `kind` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Type of YouTube resource',
+  `custom_url` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Custom URL for the channel',
+  `default_language` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Default language of the channel',
+  `localized_title` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Localized title',
+  `localized_description` text COLLATE utf8mb4_unicode_ci COMMENT 'Localized description',
+  `hidden_subscriber_count` tinyint(1) DEFAULT NULL COMMENT 'Whether subscriber count is hidden',
+  `related_playlists` json DEFAULT NULL COMMENT 'Related playlists (likes, favorites, uploads)',
+  `privacy_status` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Privacy status of the channel',
+  `is_linked` tinyint(1) DEFAULT NULL COMMENT 'Whether the channel is linked to a Google account',
+  `long_uploads_status` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Long uploads status',
+  `made_for_kids` tinyint(1) DEFAULT NULL COMMENT 'Whether content is made for kids',
+  `self_declared_made_for_kids` tinyint(1) DEFAULT NULL COMMENT 'Self-declared made for kids status',
+  `branding_settings` json DEFAULT NULL COMMENT 'Channel branding settings',
+  `audit_details` json DEFAULT NULL COMMENT 'Audit standing information',
+  `content_owner` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Content owner ID',
+  `time_linked` datetime DEFAULT NULL COMMENT 'When channel was linked to content owner',
+  `localizations` json DEFAULT NULL COMMENT 'Titles and descriptions in different languages'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -1368,6 +1752,25 @@ CREATE TABLE `feature_visibility_rules` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `feed_classification_diagnostics`
+--
+
+CREATE TABLE `feed_classification_diagnostics` (
+  `id` int NOT NULL,
+  `domain_id` int NOT NULL,
+  `feed_url` varchar(512) NOT NULL,
+  `original_content` text,
+  `detected_type` enum('podcast','blog','rss','atom','unknown') NOT NULL DEFAULT 'unknown',
+  `classification_reason` text,
+  `has_enclosures` tinyint(1) DEFAULT '0',
+  `content_sample` text,
+  `headers` text,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `imprints`
 --
 
@@ -1396,6 +1799,20 @@ CREATE TABLE `invitations` (
   `first_name` varchar(255) NOT NULL,
   `last_name` varchar(255) NOT NULL,
   `last_used` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `isbndb_api_requests`
+--
+
+CREATE TABLE `isbndb_api_requests` (
+  `id` int NOT NULL,
+  `isbn` varchar(20) NOT NULL,
+  `request_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `status_code` int DEFAULT NULL,
+  `response_message` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -1732,6 +2149,25 @@ CREATE TABLE `scheduled_jobs` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `scraped_pages`
+--
+
+CREATE TABLE `scraped_pages` (
+  `id` int NOT NULL,
+  `domain_id` int NOT NULL,
+  `url` varchar(2048) NOT NULL,
+  `title` varchar(512) DEFAULT NULL,
+  `content_hash` varchar(64) DEFAULT NULL,
+  `last_crawled_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `crawl_count` int DEFAULT '1',
+  `status_code` int DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `scrape_jobs`
 --
 
@@ -1927,9 +2363,13 @@ CREATE TABLE `youtube_extraction_jobs` (
   `domain_name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Domain name used for searching if channel ID not found in social links.',
   `channel_id` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `status` enum('pending','processing','completed','failed') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending' COMMENT 'Current status of the job ("pending", "processing", "completed", or "failed").',
+  `source_url` varchar(1024) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Original URL of the channel if found via social media',
+  `source` varchar(1024) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `result` json DEFAULT NULL COMMENT 'Result data from the extraction process, including success status and error details if applicable.',
   `created_at` datetime NOT NULL COMMENT 'When the job was created.',
-  `updated_at` datetime NOT NULL COMMENT 'When the job was last updated.'
+  `updated_at` datetime NOT NULL COMMENT 'When the job was last updated.',
+  `quota_credits` int DEFAULT '0' COMMENT 'Tracks the YouTube API quota credits used for this extraction job',
+  `quota_usage_details` json DEFAULT (json_object()) COMMENT 'JSON field storing detailed breakdown of quota usage by API method'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -2004,11 +2444,84 @@ ALTER TABLE `background_jobs`
   ADD KEY `idx_job_type` (`job_type`);
 
 --
+-- Indexes for table `books`
+--
+ALTER TABLE `books`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `isbn` (`isbn`);
+ALTER TABLE `books` ADD FULLTEXT KEY `title` (`title`,`publisher`);
+
+--
+-- Indexes for table `book_authors`
+--
+ALTER TABLE `book_authors`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `name` (`name`);
+
+--
+-- Indexes for table `book_author_mapping`
+--
+ALTER TABLE `book_author_mapping`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `book_id` (`book_id`,`author_id`),
+  ADD KEY `author_id` (`author_id`);
+
+--
+-- Indexes for table `book_other_isbns`
+--
+ALTER TABLE `book_other_isbns`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `book_id` (`book_id`,`isbn`);
+
+--
+-- Indexes for table `book_prices`
+--
+ALTER TABLE `book_prices`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `book_id` (`book_id`);
+
+--
+-- Indexes for table `book_reviews`
+--
+ALTER TABLE `book_reviews`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `book_id` (`book_id`);
+
+--
 -- Indexes for table `book_search_cache`
 --
 ALTER TABLE `book_search_cache`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `topic` (`topic`);
+
+--
+-- Indexes for table `book_subjects`
+--
+ALTER TABLE `book_subjects`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `name` (`name`);
+
+--
+-- Indexes for table `book_subject_mapping`
+--
+ALTER TABLE `book_subject_mapping`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `book_id` (`book_id`,`subject_id`),
+  ADD KEY `subject_id` (`subject_id`);
+
+--
+-- Indexes for table `brandfetch_colors`
+--
+ALTER TABLE `brandfetch_colors`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_brandfetch_colors_domain` (`domain_id`);
+
+--
+-- Indexes for table `brandfetch_company_info`
+--
+ALTER TABLE `brandfetch_company_info`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_brandfetch_company_domain` (`domain_id`);
 
 --
 -- Indexes for table `brandfetch_data`
@@ -2018,12 +2531,54 @@ ALTER TABLE `brandfetch_data`
   ADD UNIQUE KEY `domain` (`domain`);
 
 --
+-- Indexes for table `brandfetch_links`
+--
+ALTER TABLE `brandfetch_links`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_brandfetch_links_domain` (`domain_id`);
+
+--
+-- Indexes for table `brandfetch_logos`
+--
+ALTER TABLE `brandfetch_logos`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_brandfetch_logos_domain` (`domain_id`);
+
+--
+-- Indexes for table `brandfetch_metadata`
+--
+ALTER TABLE `brandfetch_metadata`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_brandfetch_metadata_domain` (`domain_id`);
+
+--
 -- Indexes for table `cached_books`
 --
 ALTER TABLE `cached_books`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `unique_isbn` (`isbn`),
   ADD KEY `idx_created_at` (`created_at`);
+
+--
+-- Indexes for table `charity`
+--
+ALTER TABLE `charity`
+  ADD PRIMARY KEY (`organisation_number`),
+  ADD KEY `idx_charity_registration` (`registered_charity_number`,`linked_charity_number`),
+  ADD KEY `idx_charity_name` (`charity_name`),
+  ADD KEY `idx_charity_postcode` (`charity_contact_postcode`),
+  ADD KEY `idx_charity_company` (`charity_company_registration_number`),
+  ADD KEY `idx_charity_status` (`charity_registration_status`),
+  ADD KEY `idx_charity_registered_number` (`registered_charity_number`),
+  ADD KEY `idx_charity_registration_number` (`registered_charity_number`);
+ALTER TABLE `charity` ADD FULLTEXT KEY `charity_name` (`charity_name`);
+
+--
+-- Indexes for table `charity_analysis`
+--
+ALTER TABLE `charity_analysis`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_analysis_org_number` (`organisation_number`);
 
 --
 -- Indexes for table `comments`
@@ -2186,7 +2741,16 @@ ALTER TABLE `domain_events`
 --
 ALTER TABLE `domain_external_links`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `unique_ext_domain` (`domain_id`,`external_domain`);
+  ADD KEY `domain_id_idx` (`domain_id`);
+
+--
+-- Indexes for table `domain_external_links_detail`
+--
+ALTER TABLE `domain_external_links_detail`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `domain_id_external_domain` (`domain_id`,`external_domain`),
+  ADD KEY `idx_seen_active` (`domain_id`,`seen_in_last_crawl`,`is_active`),
+  ADD KEY `idx_target_url` (`target_url`(255));
 
 --
 -- Indexes for table `domain_features`
@@ -2299,6 +2863,14 @@ ALTER TABLE `domain_ranked_keywords`
   ADD KEY `idx_ranked_keywords_keyword` (`keyword`);
 
 --
+-- Indexes for table `domain_robots`
+--
+ALTER TABLE `domain_robots`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `domain` (`domain`),
+  ADD KEY `idx_domain_robots_domain` (`domain`);
+
+--
 -- Indexes for table `domain_rss_feeds`
 --
 ALTER TABLE `domain_rss_feeds`
@@ -2368,6 +2940,14 @@ ALTER TABLE `domain_social_podcast`
   ADD KEY `domain_social_podcast_domain_fk` (`domain_id`);
 
 --
+-- Indexes for table `domain_website_metadata`
+--
+ALTER TABLE `domain_website_metadata`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_domain_website_metadata_page` (`page_id`),
+  ADD KEY `idx_domain_website_metadata_domain` (`domain_id`);
+
+--
 -- Indexes for table `domain_youtube_captions`
 --
 ALTER TABLE `domain_youtube_captions`
@@ -2379,7 +2959,7 @@ ALTER TABLE `domain_youtube_captions`
 -- Indexes for table `domain_youtube_channels`
 --
 ALTER TABLE `domain_youtube_channels`
-  ADD PRIMARY KEY (`channel_id`) USING BTREE,
+  ADD PRIMARY KEY (`domain_id`,`channel_id`),
   ADD UNIQUE KEY `idx_youtube_channels_channel_id` (`channel_id`);
 
 --
@@ -2484,6 +3064,14 @@ ALTER TABLE `feature_visibility_rules`
   ADD KEY `idx_feature_rules` (`feature_reference`,`rule_type`);
 
 --
+-- Indexes for table `feed_classification_diagnostics`
+--
+ALTER TABLE `feed_classification_diagnostics`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_domain_id` (`domain_id`),
+  ADD KEY `idx_feed_url` (`feed_url`(255));
+
+--
 -- Indexes for table `imprints`
 --
 ALTER TABLE `imprints`
@@ -2499,6 +3087,13 @@ ALTER TABLE `invitations`
   ADD UNIQUE KEY `login_token` (`login_token`),
   ADD KEY `organization_id` (`organization_id`),
   ADD KEY `created_by` (`created_by`);
+
+--
+-- Indexes for table `isbndb_api_requests`
+--
+ALTER TABLE `isbndb_api_requests`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `isbn` (`isbn`,`request_time`);
 
 --
 -- Indexes for table `login_tokens`
@@ -2649,6 +3244,13 @@ ALTER TABLE `scheduled_jobs`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `scraped_pages`
+--
+ALTER TABLE `scraped_pages`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `domain_id` (`domain_id`);
+
+--
 -- Indexes for table `scrape_jobs`
 --
 ALTER TABLE `scrape_jobs`
@@ -2793,9 +3395,69 @@ ALTER TABLE `app_demo_state`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `books`
+--
+ALTER TABLE `books`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `book_authors`
+--
+ALTER TABLE `book_authors`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `book_author_mapping`
+--
+ALTER TABLE `book_author_mapping`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `book_other_isbns`
+--
+ALTER TABLE `book_other_isbns`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `book_prices`
+--
+ALTER TABLE `book_prices`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `book_reviews`
+--
+ALTER TABLE `book_reviews`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `book_search_cache`
 --
 ALTER TABLE `book_search_cache`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `book_subjects`
+--
+ALTER TABLE `book_subjects`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `book_subject_mapping`
+--
+ALTER TABLE `book_subject_mapping`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `brandfetch_colors`
+--
+ALTER TABLE `brandfetch_colors`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `brandfetch_company_info`
+--
+ALTER TABLE `brandfetch_company_info`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
@@ -2805,9 +3467,33 @@ ALTER TABLE `brandfetch_data`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `brandfetch_links`
+--
+ALTER TABLE `brandfetch_links`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `brandfetch_logos`
+--
+ALTER TABLE `brandfetch_logos`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `brandfetch_metadata`
+--
+ALTER TABLE `brandfetch_metadata`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `cached_books`
 --
 ALTER TABLE `cached_books`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `charity_analysis`
+--
+ALTER TABLE `charity_analysis`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
@@ -2919,6 +3605,12 @@ ALTER TABLE `domain_external_links`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `domain_external_links_detail`
+--
+ALTER TABLE `domain_external_links_detail`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `domain_features`
 --
 ALTER TABLE `domain_features`
@@ -3003,6 +3695,12 @@ ALTER TABLE `domain_ranked_keywords`
   MODIFY `ranked_keyword_id` bigint NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `domain_robots`
+--
+ALTER TABLE `domain_robots`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `domain_rss_feeds`
 --
 ALTER TABLE `domain_rss_feeds`
@@ -3057,15 +3755,33 @@ ALTER TABLE `domain_social_podcast`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `domain_website_metadata`
+--
+ALTER TABLE `domain_website_metadata`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `domain_youtube_video_topics`
 --
 ALTER TABLE `domain_youtube_video_topics`
   MODIFY `id` int NOT NULL AUTO_INCREMENT COMMENT 'Auto-increment primary key.';
 
 --
+-- AUTO_INCREMENT for table `feed_classification_diagnostics`
+--
+ALTER TABLE `feed_classification_diagnostics`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `imprints`
 --
 ALTER TABLE `imprints`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `isbndb_api_requests`
+--
+ALTER TABLE `isbndb_api_requests`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
@@ -3084,6 +3800,12 @@ ALTER TABLE `performance_thresholds`
 -- AUTO_INCREMENT for table `publishers`
 --
 ALTER TABLE `publishers`
+  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `scraped_pages`
+--
+ALTER TABLE `scraped_pages`
   MODIFY `id` int NOT NULL AUTO_INCREMENT;
 
 --
@@ -3161,6 +3883,68 @@ ALTER TABLE `ai_marketing_tips`
 --
 ALTER TABLE `app_demos`
   ADD CONSTRAINT `app_demos_ibfk_1` FOREIGN KEY (`organization_id`) REFERENCES `organizations` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `book_author_mapping`
+--
+ALTER TABLE `book_author_mapping`
+  ADD CONSTRAINT `book_author_mapping_ibfk_1` FOREIGN KEY (`book_id`) REFERENCES `books` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `book_author_mapping_ibfk_2` FOREIGN KEY (`author_id`) REFERENCES `book_authors` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `book_other_isbns`
+--
+ALTER TABLE `book_other_isbns`
+  ADD CONSTRAINT `book_other_isbns_ibfk_1` FOREIGN KEY (`book_id`) REFERENCES `books` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `book_prices`
+--
+ALTER TABLE `book_prices`
+  ADD CONSTRAINT `book_prices_ibfk_1` FOREIGN KEY (`book_id`) REFERENCES `books` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `book_reviews`
+--
+ALTER TABLE `book_reviews`
+  ADD CONSTRAINT `book_reviews_ibfk_1` FOREIGN KEY (`book_id`) REFERENCES `books` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `book_subject_mapping`
+--
+ALTER TABLE `book_subject_mapping`
+  ADD CONSTRAINT `book_subject_mapping_ibfk_1` FOREIGN KEY (`book_id`) REFERENCES `books` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `book_subject_mapping_ibfk_2` FOREIGN KEY (`subject_id`) REFERENCES `book_subjects` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `brandfetch_colors`
+--
+ALTER TABLE `brandfetch_colors`
+  ADD CONSTRAINT `brandfetch_colors_ibfk_1` FOREIGN KEY (`domain_id`) REFERENCES `domain_info` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `brandfetch_company_info`
+--
+ALTER TABLE `brandfetch_company_info`
+  ADD CONSTRAINT `brandfetch_company_info_ibfk_1` FOREIGN KEY (`domain_id`) REFERENCES `domain_info` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `brandfetch_links`
+--
+ALTER TABLE `brandfetch_links`
+  ADD CONSTRAINT `brandfetch_links_ibfk_1` FOREIGN KEY (`domain_id`) REFERENCES `domain_info` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `brandfetch_logos`
+--
+ALTER TABLE `brandfetch_logos`
+  ADD CONSTRAINT `brandfetch_logos_ibfk_1` FOREIGN KEY (`domain_id`) REFERENCES `domain_info` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `brandfetch_metadata`
+--
+ALTER TABLE `brandfetch_metadata`
+  ADD CONSTRAINT `brandfetch_metadata_ibfk_1` FOREIGN KEY (`domain_id`) REFERENCES `domain_info` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `comments`
@@ -3269,12 +4053,6 @@ ALTER TABLE `domain_events`
   ADD CONSTRAINT `domain_events_ibfk_1` FOREIGN KEY (`domain_id`) REFERENCES `domain_info` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `domain_external_links`
---
-ALTER TABLE `domain_external_links`
-  ADD CONSTRAINT `domain_external_links_ibfk_1` FOREIGN KEY (`domain_id`) REFERENCES `domain_info` (`id`) ON DELETE CASCADE;
-
---
 -- Constraints for table `domain_features`
 --
 ALTER TABLE `domain_features`
@@ -3379,6 +4157,13 @@ ALTER TABLE `domain_social_podcast`
   ADD CONSTRAINT `domain_social_podcast_domain_fk` FOREIGN KEY (`domain_id`) REFERENCES `domain_info` (`id`) ON DELETE CASCADE;
 
 --
+-- Constraints for table `domain_website_metadata`
+--
+ALTER TABLE `domain_website_metadata`
+  ADD CONSTRAINT `domain_website_metadata_ibfk_1` FOREIGN KEY (`domain_id`) REFERENCES `domain_info` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `domain_website_metadata_ibfk_2` FOREIGN KEY (`page_id`) REFERENCES `scraped_pages` (`id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `features`
 --
 ALTER TABLE `features`
@@ -3433,6 +4218,12 @@ ALTER TABLE `feature_versions`
 --
 ALTER TABLE `feature_visibility_rules`
   ADD CONSTRAINT `fk_feature_visibility` FOREIGN KEY (`feature_reference`) REFERENCES `features` (`reference`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `feed_classification_diagnostics`
+--
+ALTER TABLE `feed_classification_diagnostics`
+  ADD CONSTRAINT `fk_feed_diagnostics_domain` FOREIGN KEY (`domain_id`) REFERENCES `domain_info` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `imprints`
@@ -3525,6 +4316,12 @@ ALTER TABLE `responses`
   ADD CONSTRAINT `fk_responses_organization` FOREIGN KEY (`organization_id`) REFERENCES `organizations` (`id`),
   ADD CONSTRAINT `responses_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `responses_ibfk_2` FOREIGN KEY (`system_dependency_source`) REFERENCES `features` (`reference`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `scraped_pages`
+--
+ALTER TABLE `scraped_pages`
+  ADD CONSTRAINT `scraped_pages_ibfk_1` FOREIGN KEY (`domain_id`) REFERENCES `domain_info` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `teams`

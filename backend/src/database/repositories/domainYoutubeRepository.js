@@ -10,9 +10,18 @@ export async function getAllYoutubeData(domainId) {
   const pool = await getPool();
   
   try {
-    // Get channel data
+    // Get channel data with all fields
     const [channels] = await pool.query(
-      'SELECT * FROM domain_youtube_channels WHERE domain_id = ?',
+      `SELECT 
+        domain_id, channel_id, name, description, published_at, thumbnail_url,
+        subscriber_count, view_count, video_count, country, topic_categories,
+        etag, kind, custom_url, default_language, localized_title, 
+        localized_description, hidden_subscriber_count, related_playlists,
+        privacy_status, is_linked, long_uploads_status, made_for_kids,
+        self_declared_made_for_kids, branding_settings, audit_details,
+        content_owner, time_linked, localizations
+       FROM domain_youtube_channels 
+       WHERE domain_id = ?`,
       [domainId]
     );
     
@@ -21,15 +30,26 @@ export async function getAllYoutubeData(domainId) {
       return null;
     }
     
-    // Get playlists
+    // Get playlists with all fields
     const [playlists] = await pool.query(
-      'SELECT * FROM domain_youtube_playlists WHERE domain_id = ?',
+      `SELECT 
+        playlist_id, domain_id, channel_id, title, description,
+        published_at, item_count, playlist_type
+       FROM domain_youtube_playlists 
+       WHERE domain_id = ?`,
       [domainId]
     );
     
-    // Get videos
+    // Get videos with all fields
     const [videos] = await pool.query(
-      'SELECT * FROM domain_youtube_videos WHERE domain_id = ? ORDER BY published_at DESC',
+      `SELECT 
+        video_id, domain_id, channel_id, title, description, published_at,
+        duration, definition, caption_available, licensed_content, privacy_status,
+        license, view_count, like_count, comment_count, category_id,
+        tags, topics, thumbnail_default, thumbnail_high, made_for_kids
+       FROM domain_youtube_videos 
+       WHERE domain_id = ? 
+       ORDER BY published_at DESC`,
       [domainId]
     );
     
@@ -51,31 +71,44 @@ export async function getAllYoutubeData(domainId) {
     // Prepare placeholders for IN clause
     const placeholders = videoIds.map(() => '?').join(',');
     
-    // Get comments for all videos
+    // Get comments for all videos with all fields
     const [comments] = await pool.query(
-      `SELECT * FROM domain_youtube_comments 
+      `SELECT 
+        comment_id, domain_id, video_id, parent_comment_id, author_name,
+        author_channel_id, text, like_count, published_at, updated_at
+       FROM domain_youtube_comments 
        WHERE domain_id = ? AND video_id IN (${placeholders})
        ORDER BY published_at DESC`,
       [domainId, ...videoIds]
     );
     
-    // Get captions for all videos
+    // Get captions for all videos with all fields
     const [captions] = await pool.query(
-      `SELECT * FROM domain_youtube_captions 
+      `SELECT 
+        caption_id, domain_id, video_id, language, name,
+        auto_generated, caption_type, last_updated
+       FROM domain_youtube_captions 
        WHERE domain_id = ? AND video_id IN (${placeholders})`,
       [domainId, ...videoIds]
     );
     
-    // Get topics for all videos
+    // Get topics for all videos with all fields
     const [topics] = await pool.query(
-      `SELECT * FROM domain_youtube_video_topics 
+      `SELECT 
+        id, domain_id, video_id, topic_id, topic_category, type
+       FROM domain_youtube_video_topics 
        WHERE domain_id = ? AND video_id IN (${placeholders})`,
       [domainId, ...videoIds]
     );
     
-    // Get extraction job history
+    // Get extraction job history with all fields
     const [jobs] = await pool.query(
-      'SELECT * FROM youtube_extraction_jobs WHERE domain_id = ? ORDER BY created_at DESC',
+      `SELECT 
+        id, domain_id, domain_name, channel_id, status, source_url, source,
+        result, created_at, updated_at, quota_credits, quota_usage_details
+       FROM youtube_extraction_jobs 
+       WHERE domain_id = ? 
+       ORDER BY created_at DESC`,
       [domainId]
     );
     

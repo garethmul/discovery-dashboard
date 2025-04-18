@@ -34,6 +34,54 @@ router.get('/:domainId', async (req, res) => {
       };
     }
     
+    // Ensure channel data has all expected fields (especially for frontend compatibility)
+    if (youtubeData.channels && youtubeData.channels.length > 0) {
+      youtubeData.channels.forEach(channel => {
+        // Handle JSON fields that might be strings
+        ['related_playlists', 'branding_settings', 'audit_details', 'localizations'].forEach(field => {
+          if (channel[field] && typeof channel[field] === 'string') {
+            try {
+              channel[field] = JSON.parse(channel[field]);
+            } catch (e) {
+              logger.warn(`Could not parse JSON for ${field} in channel ${channel.channel_id}`);
+            }
+          }
+        });
+      });
+    }
+    
+    // Ensure video data has all expected fields
+    if (youtubeData.videos && youtubeData.videos.length > 0) {
+      youtubeData.videos.forEach(video => {
+        // Handle JSON fields that might be strings
+        ['tags', 'topics'].forEach(field => {
+          if (video[field] && typeof video[field] === 'string') {
+            try {
+              video[field] = JSON.parse(video[field]);
+            } catch (e) {
+              logger.warn(`Could not parse JSON for ${field} in video ${video.video_id}`);
+            }
+          }
+        });
+      });
+    }
+    
+    // Ensure job data has all expected fields
+    if (youtubeData.jobs && youtubeData.jobs.length > 0) {
+      youtubeData.jobs.forEach(job => {
+        // Handle JSON fields that might be strings
+        ['result', 'quota_usage_details'].forEach(field => {
+          if (job[field] && typeof job[field] === 'string') {
+            try {
+              job[field] = JSON.parse(job[field]);
+            } catch (e) {
+              logger.warn(`Could not parse JSON for ${field} in job ${job.id}`);
+            }
+          }
+        });
+      });
+    }
+    
     return res.json(youtubeData);
   } catch (error) {
     logger.error(`Error retrieving YouTube data: ${error.message}`);
