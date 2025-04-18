@@ -24,7 +24,17 @@ router.get('/:domainId', async (req, res) => {
     const booksData = await domainBooksRepository.getAllBooksData(domainId);
     
     if (!booksData) {
-      return res.status(404).json({ error: 'No books data found for this domain' });
+      return res.status(200).json({
+        books: [],
+        references: [],
+        images: [],
+        stats: {
+          totalBooks: 0,
+          availableBooks: 0,
+          totalReferences: 0,
+          totalImages: 0
+        }
+      });
     }
     
     return res.json(booksData);
@@ -55,7 +65,17 @@ router.get('/:domainId/isbn/:isbn', async (req, res) => {
     const bookDetails = await domainBooksRepository.getBookDetails(domainId, isbn);
     
     if (!bookDetails) {
-      return res.status(404).json({ error: 'No details found for this book ISBN' });
+      return res.status(200).json({
+        isbn: isbn,
+        authors: [],
+        subjects: [],
+        reviews: [],
+        prices: [],
+        other_isbns: [],
+        domain_references: [],
+        domain_images: [],
+        available: false
+      });
     }
     
     return res.json(bookDetails);

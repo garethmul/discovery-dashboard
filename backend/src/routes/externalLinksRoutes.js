@@ -24,7 +24,16 @@ router.get('/:domainId', async (req, res) => {
     const externalLinksData = await domainExternalLinksRepository.getAllExternalLinksData(domainId);
     
     if (!externalLinksData) {
-      return res.status(404).json({ error: 'No external links data found for this domain' });
+      return res.status(200).json({
+        summary: [],
+        details: [],
+        stats: {
+          totalLinks: 0,
+          uniqueDomains: 0,
+          activeLinks: 0,
+          partnerLinks: 0
+        }
+      });
     }
     
     return res.json(externalLinksData);
@@ -55,7 +64,10 @@ router.get('/:domainId/domain/:externalDomain', async (req, res) => {
     const domainDetails = await domainExternalLinksRepository.getExternalDomainDetails(domainId, externalDomain);
     
     if (!domainDetails) {
-      return res.status(404).json({ error: 'No details found for this external domain' });
+      return res.status(200).json({
+        summary: null,
+        details: []
+      });
     }
     
     return res.json(domainDetails);

@@ -23,8 +23,24 @@ router.get('/:domainId', async (req, res) => {
     logger.info(`[API] Fetching YouTube data for domain ID: ${domainId}`);
     const youtubeData = await domainYoutubeRepository.getAllYoutubeData(domainId);
     
+    // If no data found, return empty structure instead of 404
     if (!youtubeData) {
-      return res.status(404).json({ error: 'No YouTube data found for this domain' });
+      return res.status(200).json({
+        channels: [],
+        playlists: [],
+        videos: [],
+        comments: [],
+        captions: [],
+        topics: [],
+        jobs: [],
+        stats: {
+          totalVideos: 0,
+          totalPlaylists: 0,
+          totalComments: 0,
+          viewCount: 0,
+          subscriberCount: 0
+        }
+      });
     }
     
     // Ensure stats is always present with default values

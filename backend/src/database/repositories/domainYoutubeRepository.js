@@ -25,9 +25,24 @@ export async function getAllYoutubeData(domainId) {
       [domainId]
     );
     
-    // Return early if no channel data exists
+    // Return empty data structure instead of null when no channels exist
     if (channels.length === 0) {
-      return null;
+      return {
+        channels: [],
+        playlists: [],
+        videos: [],
+        comments: [],
+        captions: [],
+        topics: [],
+        jobs: [],
+        stats: {
+          totalVideos: 0,
+          totalPlaylists: 0,
+          totalComments: 0,
+          viewCount: 0,
+          subscriberCount: 0
+        }
+      };
     }
     
     // Get playlists with all fields
