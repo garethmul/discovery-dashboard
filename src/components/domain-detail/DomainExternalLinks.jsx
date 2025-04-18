@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
@@ -8,8 +9,6 @@ import { ExternalLink, Search, RefreshCw } from "lucide-react";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { Progress } from "../ui/progress";
-
-const API_KEY = 'test-api-key-123';
 
 export default function DomainExternalLinks({ domain }) {
   const [externalLinks, setExternalLinks] = useState(null);
@@ -26,13 +25,9 @@ export default function DomainExternalLinks({ domain }) {
     
     try {
       console.log(`Fetching external links for domain ID: ${domain.domainId}`);
-      const response = await fetch(`/external-links/${domain.domainId}?apiKey=${API_KEY}`);
+      const response = await axios.get(`/api/external-links/${domain.domainId}`);
       
-      if (!response.ok) {
-        throw new Error(`API returned ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
+      const data = response.data;
       console.log('External links data:', data);
       
       setExternalLinks(data);

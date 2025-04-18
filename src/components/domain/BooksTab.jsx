@@ -12,8 +12,6 @@ import { Progress } from "../ui/progress";
 import { Search, RefreshCw, BookOpen, ExternalLink } from "lucide-react";
 import axios from 'axios';
 
-const API_KEY = 'test-api-key-123'; // Use the same API key as other requests
-
 const BooksTab = ({ domainData, preloadedData }) => {
   const [booksData, setBooksData] = useState(preloadedData || null);
   const [loading, setLoading] = useState(preloadedData ? false : true);
@@ -37,7 +35,7 @@ const BooksTab = ({ domainData, preloadedData }) => {
       console.log(`Fetching books for domain ID: ${domainId}`);
       
       // Updated API endpoint format to match other working endpoints
-      const endpoint = `/books/${domainId}?apiKey=${API_KEY}`;
+      const endpoint = `/api/books/${domainId}`;
       console.log(`Making API request to: ${endpoint}`);
       
       const response = await axios.get(endpoint);
@@ -56,7 +54,7 @@ const BooksTab = ({ domainData, preloadedData }) => {
       console.error('Error fetching books data:', err);
       setError('Failed to load books data. Please try again later.');
       setDebugInfo({
-        endpoint: `/books/${domainData.domainId || domainData.id}`,
+        endpoint: `/api/books/${domainData.domainId || domainData.id}`,
         error: err.message,
         status: err.response?.status
       });
@@ -73,7 +71,7 @@ const BooksTab = ({ domainData, preloadedData }) => {
     
     try {
       const domainId = domainData.domainId || domainData.id;
-      const endpoint = `/books/${domainId}/search?query=${encodeURIComponent(searchQuery)}&apiKey=${API_KEY}`;
+      const endpoint = `/api/books/${domainId}/search?query=${encodeURIComponent(searchQuery)}`;
       console.log(`Making search API request to: ${endpoint}`);
       
       const response = await axios.get(endpoint);
@@ -95,7 +93,7 @@ const BooksTab = ({ domainData, preloadedData }) => {
     
     try {
       const domainId = domainData.domainId || domainData.id;
-      const endpoint = `/books/${domainId}/isbn/${isbn}?apiKey=${API_KEY}`;
+      const endpoint = `/api/books/${domainId}/isbn/${isbn}`;
       console.log(`Fetching book details from: ${endpoint}`);
       
       const response = await axios.get(endpoint);

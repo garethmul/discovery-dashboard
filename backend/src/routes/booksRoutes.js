@@ -1,8 +1,12 @@
 import express from 'express';
 import * as domainBooksRepository from '../database/repositories/domainBooksRepository.js';
 import logger from '../utils/logger.js';
+import authMiddleware from '../utils/authMiddleware.js';
 
 const router = express.Router();
+
+// Apply authentication middleware to all routes in this router
+router.use(authMiddleware);
 
 /**
  * GET /books/:domainId

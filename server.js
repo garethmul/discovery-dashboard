@@ -84,10 +84,10 @@ const apiRouter = express.Router();
 apiRouter.use(authMiddleware);
 
 // Mount these routes WITH the /api prefix
-// Now they will be accessible at /api/youtube, /api/external-links, and /api/books
-app.use('/api/youtube', authMiddleware, youtubeRoutes);
-app.use('/api/external-links', authMiddleware, externalLinksRoutes);
-app.use('/api/books', authMiddleware, booksRoutes);
+// Don't apply authMiddleware again since each router now has it
+app.use('/api/youtube', youtubeRoutes);
+app.use('/api/external-links', externalLinksRoutes);
+app.use('/api/books', booksRoutes);
 
 // Define API routes
 // Get domain details by ID
