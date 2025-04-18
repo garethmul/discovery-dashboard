@@ -5,7 +5,7 @@ import logger from './logger.js';
  * Enhanced to accept API keys from multiple sources:
  * - Authorization header (Bearer token)
  * - Request body (api_key field)
- * - URL query parameter (api_key)
+ * - URL query parameter (api_key or apiKey)
  */
 export default function authMiddleware(req, res, next) {
   // Get the full original URL path for logging
@@ -50,10 +50,15 @@ export default function authMiddleware(req, res, next) {
     logger.debug('API key found in request body');
   }
   
-  // 3. Check for api_key in query parameters
-  if (!apiKey && req.query && req.query.api_key) {
-    apiKey = req.query.api_key;
-    logger.debug('API key found in query parameters');
+  // 3. Check for api_key in query parameters (both api_key and apiKey formats)
+  if (!apiKey && req.query) {
+    if (req.query.api_key) {
+      apiKey = req.query.api_key;
+      logger.debug('API key found in query parameters (api_key)');
+    } else if (req.query.apiKey) {
+      apiKey = req.query.apiKey;
+      logger.debug('API key found in query parameters (apiKey)');
+    }
   }
   
   // If no API key found in any location, use the default test key for certain endpoints
@@ -66,7 +71,7 @@ export default function authMiddleware(req, res, next) {
       logger.warn(`Authentication failed: No API key provided for ${fullPath}`);
       return res.status(401).json({
         error: 'Unauthorized',
-        message: 'No API key provided. Include it in Authorization header, request body, or query parameter'
+        message: 'No API key provided. Include it in Authorization header, request body, or query parameter (api_key or apiKey)'
       });
     }
   }
