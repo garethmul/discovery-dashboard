@@ -8,7 +8,8 @@ import { Alert, AlertTitle, AlertDescription } from "../ui/alert";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "../ui/table";
 import { ScrollArea } from "../ui/scroll-area";
 import { Separator } from "../ui/separator";
-import { Search, RefreshCw, BookOpen } from "lucide-react";
+import { Progress } from "../ui/progress";
+import { Search, RefreshCw, BookOpen, ExternalLink } from "lucide-react";
 import axios from 'axios';
 
 const BooksTab = ({ domainData }) => {
@@ -19,6 +20,7 @@ const BooksTab = ({ domainData }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState(null);
   const [selectedBook, setSelectedBook] = useState(null);
+  const [debugInfo, setDebugInfo] = useState(null);
 
   const fetchBooksData = async () => {
     if (!domainData || !domainData.id) return;
@@ -27,13 +29,26 @@ const BooksTab = ({ domainData }) => {
     setError(null);
     
     try {
+      console.log(`Fetching books for domain ID: ${domainData.id}`);
       const response = await axios.get(`/api/books/${domainData.id}`);
+      console.log('Books data response:', response.data);
       setBooksData(response.data);
       setSearchResults(null);
       setSelectedBook(null);
+      setDebugInfo({
+        endpoint: `/api/books/${domainData.id}`,
+        dataReceived: !!response.data,
+        hasBooks: response.data?.books?.length > 0,
+        dataKeys: Object.keys(response.data || {})
+      });
     } catch (err) {
       console.error('Error fetching books data:', err);
       setError('Failed to load books data. Please try again later.');
+      setDebugInfo({
+        endpoint: `/api/books/${domainData.id}`,
+        error: err.message,
+        status: err.response?.status
+      });
     } finally {
       setLoading(false);
     }
@@ -47,6 +62,7 @@ const BooksTab = ({ domainData }) => {
     
     try {
       const response = await axios.get(`/api/books/${domainData.id}/search?query=${encodeURIComponent(searchQuery)}`);
+      console.log('Search results:', response.data);
       setSearchResults(response.data);
     } catch (err) {
       console.error('Error searching books:', err);
@@ -63,8 +79,15 @@ const BooksTab = ({ domainData }) => {
     setError(null);
     
     try {
+      console.log(`Fetching book details for ISBN: ${isbn}`);
       const response = await axios.get(`/api/books/${domainData.id}/isbn/${isbn}`);
+      console.log('Book details response:', response.data);
       setSelectedBook(response.data);
+      setDebugInfo({
+        endpoint: `/api/books/${domainData.id}/isbn/${isbn}`,
+        dataReceived: !!response.data,
+        dataKeys: Object.keys(response.data || {})
+      });
     } catch (err) {
       console.error('Error fetching book details:', err);
       setError('Failed to load book details. Please try again later.');
@@ -297,6 +320,28 @@ const BooksTab = ({ domainData }) => {
           </div>
         )}
         
+        {selectedBook.external_links && selectedBook.external_links.length > 0 && (
+          <div>
+            <h3 className="text-xl font-semibold mb-2">
+              External Links
+            </h3>
+            <div className="flex flex-col space-y-2">
+              {selectedBook.external_links.map((link, index) => (
+                <a 
+                  key={index}
+                  href={link.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-blue-600 hover:underline"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  {link.title || link.url}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+        
         {selectedBook.prices?.length > 0 && (
           <div>
             <h3 className="text-xl font-semibold mb-2">
@@ -328,9 +373,9 @@ const BooksTab = ({ domainData }) => {
                             href={price.link} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline"
+                            className="text-blue-600 hover:underline flex items-center gap-1"
                           >
-                            Buy
+                            Buy <ExternalLink className="h-3 w-3" />
                           </a>
                         )}
                       </TableCell>
@@ -385,9 +430,9 @@ const BooksTab = ({ domainData }) => {
                           href={ref.page_url} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
+                          className="text-blue-600 hover:underline flex items-center gap-1"
                         >
-                          {ref.page_url}
+                          {ref.page_url} <ExternalLink className="h-3 w-3" />
                         </a>
                       </TableCell>
                       <TableCell>{ref.context || 'N/A'}</TableCell>
@@ -422,9 +467,9 @@ const BooksTab = ({ domainData }) => {
                         href={img.page_url} 
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
+                        className="text-blue-600 hover:underline flex items-center gap-1 inline-flex"
                       >
-                        {img.page_url}
+                        {img.page_url} <ExternalLink className="h-3 w-3" />
                       </a>
                     </p>
                     {img.alt_text && (
@@ -483,9 +528,9 @@ const BooksTab = ({ domainData }) => {
                     href={ref.page_url} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline"
+                    className="text-blue-600 hover:underline flex items-center gap-1"
                   >
-                    {ref.page_url}
+                    {ref.page_url} <ExternalLink className="h-3 w-3" />
                   </a>
                 </TableCell>
                 <TableCell>{ref.context || 'N/A'}</TableCell>
@@ -535,9 +580,9 @@ const BooksTab = ({ domainData }) => {
                   href={img.page_url} 
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
+                  className="text-blue-600 hover:underline flex items-center gap-1 inline-flex"
                 >
-                  {img.page_url}
+                  {img.page_url} <ExternalLink className="h-3 w-3" />
                 </a>
               </p>
               {img.alt_text && (
@@ -585,6 +630,38 @@ const BooksTab = ({ domainData }) => {
     );
   };
 
+  const renderLoadingIndicator = () => (
+    <div className="py-8 space-y-4">
+      <div className="flex justify-center">
+        <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+      <Progress value={60} className="w-full max-w-md mx-auto" />
+      <p className="text-center text-muted-foreground text-sm">Loading book data...</p>
+    </div>
+  );
+
+  const renderDebugInfo = () => {
+    if (!debugInfo) return null;
+    
+    return (
+      <div className="mt-6 p-4 border border-dashed border-yellow-500 rounded-lg bg-yellow-50 text-sm">
+        <h4 className="font-semibold mb-2">Debug Information</h4>
+        <pre className="overflow-auto text-xs">{JSON.stringify(debugInfo, null, 2)}</pre>
+        {selectedBook && (
+          <>
+            <Separator className="my-2" />
+            <h4 className="font-semibold mb-2">Selected Book Data Keys</h4>
+            <ul className="list-disc pl-5">
+              {Object.keys(selectedBook).map(key => (
+                <li key={key}>{key}: {typeof selectedBook[key]}</li>
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -603,11 +680,7 @@ const BooksTab = ({ domainData }) => {
         </Button>
       </div>
       
-      {loading && !selectedBook && (
-        <div className="flex justify-center py-8">
-          <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      )}
+      {loading && !selectedBook && renderLoadingIndicator()}
       
       {error && (
         <Alert variant="destructive">
@@ -685,6 +758,8 @@ const BooksTab = ({ domainData }) => {
           </TabsContent>
         </>
       )}
+      
+      {process.env.NODE_ENV !== 'production' && renderDebugInfo()}
     </div>
   );
 };
