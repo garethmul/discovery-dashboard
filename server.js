@@ -9,6 +9,7 @@ import { getDatabaseStatus, runDiagnosticQuery } from './server/api/controllers/
 import authMiddleware from './server/middleware/authMiddleware.js';
 import youtubeRoutes from './backend/src/routes/youtubeRoutes.js';
 import externalLinksRoutes from './backend/src/routes/externalLinksRoutes.js';
+import booksRoutes from './backend/src/routes/booksRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -85,6 +86,7 @@ apiRouter.use(authMiddleware);
 // Mount YouTube routes first (no authentication)
 app.use('/api/youtube', youtubeRoutes);
 app.use('/api/external-links', externalLinksRoutes);
+app.use('/api/books', booksRoutes);
 
 // Define API routes
 // Get domain details by ID
@@ -913,12 +915,6 @@ apiRouter.get('/seo-competitors/:id', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
-// Mount YouTube routes first (no authentication required)
-// Note: The YouTube endpoints are now served by this main server.
-// backend/server.js (port 3010) is no longer needed and can be removed.
-app.use('/api/youtube', youtubeRoutes);
-app.use('/api/external-links', externalLinksRoutes);
 
 // Then mount the API router with authentication for all other /api routes
 app.use('/api', apiRouter);

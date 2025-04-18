@@ -1,25 +1,40 @@
-import React from "react";
-import { Box } from "@mui/material";
+import * as React from "react"
+import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area"
 
-// This is a simplified scroll area implementation using Material UI
-// Original component likely used a more complex library like radix-ui
-export const ScrollArea = ({ children, className, ...props }) => {
-  return (
-    <Box
-      sx={{
-        height: props.height || "100%",
-        width: props.width || "100%",
-        overflow: "auto",
-        position: "relative"
-      }}
-      className={className}
-      {...props}
-    >
+import { cn } from "../../lib/utils"
+
+const ScrollArea = React.forwardRef(({ className, children, ...props }, ref) => (
+  <ScrollAreaPrimitive.Root
+    ref={ref}
+    className={cn("relative overflow-hidden", className)}
+    {...props}
+  >
+    <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit]">
       {children}
-    </Box>
-  );
-};
+    </ScrollAreaPrimitive.Viewport>
+    <ScrollBar />
+    <ScrollAreaPrimitive.Corner />
+  </ScrollAreaPrimitive.Root>
+))
+ScrollArea.displayName = ScrollAreaPrimitive.Root.displayName
 
-export const ScrollBar = ({ orientation = "vertical", ...props }) => {
-  return null; // Simplified - MUI handles scrollbars automatically
-}; 
+const ScrollBar = React.forwardRef(({ className, orientation = "vertical", ...props }, ref) => (
+  <ScrollAreaPrimitive.ScrollAreaScrollbar
+    ref={ref}
+    orientation={orientation}
+    className={cn(
+      "flex touch-none select-none transition-colors",
+      orientation === "vertical" &&
+        "h-full w-2.5 border-l border-l-transparent p-[1px]",
+      orientation === "horizontal" &&
+        "h-2.5 border-t border-t-transparent p-[1px]",
+      className
+    )}
+    {...props}
+  >
+    <ScrollAreaPrimitive.ScrollAreaThumb className="relative flex-1 rounded-full bg-border" />
+  </ScrollAreaPrimitive.ScrollAreaScrollbar>
+))
+ScrollBar.displayName = ScrollAreaPrimitive.ScrollAreaScrollbar.displayName
+
+export { ScrollArea, ScrollBar } 

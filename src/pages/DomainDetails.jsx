@@ -30,6 +30,7 @@ import BlogTab from '../components/domain/BlogTab';
 import PlaceholderTab from '../components/domain/PlaceholderTab';
 import AIAnalysisTab from '../components/domain/AIAnalysisTab';
 import ExternalLinksTab from '../components/domain/ExternalLinksTab';
+import BooksTab from '../components/domain/BooksTab';
 
 // Map URL paths to tab indexes
 const tabPathMap = {
@@ -260,7 +261,7 @@ const DomainDetails = () => {
             <Route path="/events" element={<PlaceholderTab tabName="Events" domainData={domainData} dataField="events" />} />
             <Route path="/podcasts" element={<PlaceholderTab tabName="Podcasts" domainData={domainData} dataField="podcasts" />} />
             <Route path="/jobs" element={<PlaceholderTab tabName="Jobs" domainData={domainData} dataField="jobs" />} />
-            <Route path="/isbn" element={<PlaceholderTab tabName="ISBN" domainData={domainData} dataField="isbn" />} />
+            <Route path="/isbn" element={<BooksTab domainData={domainData} />} />
             <Route path="/opengraph" element={<PlaceholderTab tabName="OpenGraph" domainData={domainData} dataField="opengraph" />} />
             <Route path="/youtube" element={<PlaceholderTab tabName="YouTube" domainData={domainData} dataField="youtube" />} />
             <Route path="/schema" element={<PlaceholderTab tabName="Schema" domainData={domainData} dataField="schema" />} />
