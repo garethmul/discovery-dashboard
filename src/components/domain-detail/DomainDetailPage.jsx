@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getDomainById, getDomainSeoData, getDomainSeoCompetitors } from "../../services/api";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
 import { cn } from "../../lib/utils";
-import { AlertCircle, Calendar, FileText, Globe, LayoutGrid, MessageSquare, Server, Headphones, Share2, ImageIcon, Palette, Book, Code, Youtube, BarChart2, Users } from "lucide-react";
+import { AlertCircle, Calendar, FileText, Globe, LayoutGrid, MessageSquare, Server, Headphones, Share2, ImageIcon, Palette, Book, Code, Youtube, BarChart2, Users, Link as LinkIcon } from "lucide-react";
 import DomainGeneralInfo from "./DomainGeneralInfo";
 import DomainMetadata from "./DomainMetadata";
 import DomainSiteStructure from "./DomainSiteStructure";
@@ -18,7 +18,11 @@ import DomainSchema from "./DomainSchema";
 import DomainYoutube from "./DomainYoutube";
 import DomainSEO from "./DomainSEO";
 import DomainSEOCompetitors from "./DomainSEOCompetitors";
+import DomainExternalLinks from "./DomainExternalLinks";
 import { Button } from "../ui/button";
+
+// Add API key constant
+const API_KEY = 'test-api-key-123';
 
 export default function DomainDetailPage() {
   const { id } = useParams();
@@ -28,6 +32,7 @@ export default function DomainDetailPage() {
   const [hasYoutubeData, setHasYoutubeData] = useState(false);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("general");
+  const [hasExternalLinks, setHasExternalLinks] = useState(false);
 
   useEffect(() => {
     async function fetchDomain() {
@@ -105,6 +110,26 @@ export default function DomainDetailPage() {
     }
     
     checkSeoCompetitorData();
+  }, [domain?.domainId]);
+
+  useEffect(() => {
+    // Check if there's external links data for this domain
+    async function checkExternalLinks() {
+      if (!domain?.domainId) return;
+      
+      try {
+        const response = await fetch(`/external-links/${domain.domainId}?apiKey=${API_KEY}`);
+        if (response.ok) {
+          const data = await response.json();
+          setHasExternalLinks(data && (data.links?.length > 0 || data.domains?.length > 0));
+        }
+      } catch (error) {
+        console.error("Error checking External Links data:", error);
+        setHasExternalLinks(false);
+      }
+    }
+    
+    checkExternalLinks();
   }, [domain?.domainId]);
 
   if (loading) {
@@ -199,6 +224,13 @@ export default function DomainDetailPage() {
       icon: ImageIcon,
       content: <DomainImages domain={domain} />,
       hidden: !hasImages,
+    },
+    {
+      id: "external-links",
+      label: "External Links",
+      icon: LinkIcon,
+      content: <DomainExternalLinks domain={domain} />,
+      hidden: !hasExternalLinks,
     },
     {
       id: "seo",

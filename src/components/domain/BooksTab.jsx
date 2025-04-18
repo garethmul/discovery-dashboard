@@ -12,6 +12,8 @@ import { Progress } from "../ui/progress";
 import { Search, RefreshCw, BookOpen, ExternalLink } from "lucide-react";
 import axios from 'axios';
 
+const API_KEY = 'test-api-key-123'; // Use the same API key as other requests
+
 const BooksTab = ({ domainData }) => {
   const [booksData, setBooksData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -23,20 +25,29 @@ const BooksTab = ({ domainData }) => {
   const [debugInfo, setDebugInfo] = useState(null);
 
   const fetchBooksData = async () => {
-    if (!domainData || !domainData.id) return;
+    if (!domainData || !domainData.domainId) return;
     
     setLoading(true);
     setError(null);
     
     try {
-      console.log(`Fetching books for domain ID: ${domainData.id}`);
-      const response = await axios.get(`/api/books/${domainData.id}`);
+      // Use the correct domain ID field
+      const domainId = domainData.domainId || domainData.id;
+      
+      console.log(`Fetching books for domain ID: ${domainId}`);
+      
+      // Updated API endpoint format to match other working endpoints
+      const endpoint = `/books/${domainId}?apiKey=${API_KEY}`;
+      console.log(`Making API request to: ${endpoint}`);
+      
+      const response = await axios.get(endpoint);
       console.log('Books data response:', response.data);
+      
       setBooksData(response.data);
       setSearchResults(null);
       setSelectedBook(null);
       setDebugInfo({
-        endpoint: `/api/books/${domainData.id}`,
+        endpoint: endpoint,
         dataReceived: !!response.data,
         hasBooks: response.data?.books?.length > 0,
         dataKeys: Object.keys(response.data || {})
@@ -45,7 +56,7 @@ const BooksTab = ({ domainData }) => {
       console.error('Error fetching books data:', err);
       setError('Failed to load books data. Please try again later.');
       setDebugInfo({
-        endpoint: `/api/books/${domainData.id}`,
+        endpoint: `/books/${domainData.domainId || domainData.id}`,
         error: err.message,
         status: err.response?.status
       });
@@ -55,13 +66,17 @@ const BooksTab = ({ domainData }) => {
   };
 
   const handleSearch = async () => {
-    if (!searchQuery.trim() || !domainData || !domainData.id) return;
+    if (!searchQuery.trim() || !domainData) return;
     
     setLoading(true);
     setError(null);
     
     try {
-      const response = await axios.get(`/api/books/${domainData.id}/search?query=${encodeURIComponent(searchQuery)}`);
+      const domainId = domainData.domainId || domainData.id;
+      const endpoint = `/books/${domainId}/search?query=${encodeURIComponent(searchQuery)}&apiKey=${API_KEY}`;
+      console.log(`Making search API request to: ${endpoint}`);
+      
+      const response = await axios.get(endpoint);
       console.log('Search results:', response.data);
       setSearchResults(response.data);
     } catch (err) {
@@ -73,18 +88,21 @@ const BooksTab = ({ domainData }) => {
   };
 
   const fetchBookDetails = async (isbn) => {
-    if (!isbn || !domainData || !domainData.id) return;
+    if (!isbn || !domainData) return;
     
     setLoading(true);
     setError(null);
     
     try {
-      console.log(`Fetching book details for ISBN: ${isbn}`);
-      const response = await axios.get(`/api/books/${domainData.id}/isbn/${isbn}`);
+      const domainId = domainData.domainId || domainData.id;
+      const endpoint = `/books/${domainId}/isbn/${isbn}?apiKey=${API_KEY}`;
+      console.log(`Fetching book details from: ${endpoint}`);
+      
+      const response = await axios.get(endpoint);
       console.log('Book details response:', response.data);
       setSelectedBook(response.data);
       setDebugInfo({
-        endpoint: `/api/books/${domainData.id}/isbn/${isbn}`,
+        endpoint: endpoint,
         dataReceived: !!response.data,
         dataKeys: Object.keys(response.data || {})
       });
@@ -97,8 +115,14 @@ const BooksTab = ({ domainData }) => {
   };
 
   useEffect(() => {
+    // Log domainData to help diagnose issues
+    console.log('BooksTab: domainData received:', domainData);
+    if (domainData) {
+      console.log('Domain ID used for API calls:', domainData.domainId || domainData.id);
+    }
+    
     fetchBooksData();
-  }, [domainData?.id]);
+  }, [domainData?.domainId, domainData?.id]);
 
   const handleTabChange = (value) => {
     setActiveTab(value);
@@ -759,7 +783,7 @@ const BooksTab = ({ domainData }) => {
         </>
       )}
       
-      {process.env.NODE_ENV !== 'production' && renderDebugInfo()}
+      {renderDebugInfo()}
     </div>
   );
 };
