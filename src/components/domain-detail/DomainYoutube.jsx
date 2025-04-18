@@ -234,15 +234,15 @@ export default function DomainYoutube({ domain }) {
         </div>
         <div className="rounded-md border bg-card p-4 shadow-sm">
           <div className="text-sm font-medium text-muted-foreground">Videos</div>
-          <div className="mt-1 text-2xl font-bold">{youtubeData.stats.totalVideos}</div>
+          <div className="mt-1 text-2xl font-bold">{youtubeData.stats?.totalVideos || 0}</div>
         </div>
         <div className="rounded-md border bg-card p-4 shadow-sm">
           <div className="text-sm font-medium text-muted-foreground">Total Views</div>
-          <div className="mt-1 text-2xl font-bold">{formatNumber(youtubeData.stats.viewCount)}</div>
+          <div className="mt-1 text-2xl font-bold">{formatNumber(youtubeData.stats?.viewCount || 0)}</div>
         </div>
         <div className="rounded-md border bg-card p-4 shadow-sm">
           <div className="text-sm font-medium text-muted-foreground">Subscribers</div>
-          <div className="mt-1 text-2xl font-bold">{formatNumber(youtubeData.stats.subscriberCount)}</div>
+          <div className="mt-1 text-2xl font-bold">{formatNumber(youtubeData.stats?.subscriberCount || 0)}</div>
         </div>
       </div>
       

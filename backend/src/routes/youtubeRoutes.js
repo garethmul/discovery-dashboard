@@ -23,6 +23,17 @@ router.get('/:domainId', async (req, res) => {
       return res.status(404).json({ error: 'No YouTube data found for this domain' });
     }
     
+    // Ensure stats is always present with default values
+    if (!youtubeData.stats) {
+      youtubeData.stats = {
+        totalVideos: 0,
+        totalPlaylists: 0,
+        totalComments: 0,
+        viewCount: 0,
+        subscriberCount: 0
+      };
+    }
+    
     return res.json(youtubeData);
   } catch (error) {
     logger.error(`Error retrieving YouTube data: ${error.message}`);
