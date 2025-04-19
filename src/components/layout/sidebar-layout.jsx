@@ -4,7 +4,7 @@ import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
-import { Search, Menu, Home, Globe, Database, List } from 'lucide-react';
+import { Search, Menu, Home, Globe, Database, List, LogOut } from 'lucide-react';
 
 export function SidebarLayout() {
   const location = useLocation();
@@ -53,6 +53,10 @@ export function SidebarLayout() {
     }
   };
 
+  const handleLogout = () => {
+    window.location.href = '/auth/logout';
+  };
+
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 md:block">
@@ -81,6 +85,15 @@ export function SidebarLayout() {
                   {route.title}
                 </Link>
               ))}
+              
+              {/* Logout button */}
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted mt-4"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </button>
             </nav>
           </div>
         </div>
@@ -118,6 +131,15 @@ export function SidebarLayout() {
                     {route.title}
                   </Link>
                 ))}
+                
+                {/* Logout button for mobile */}
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted mt-4"
+                >
+                  <LogOut className="h-5 w-5" />
+                  Logout
+                </button>
               </nav>
             </SheetContent>
           </Sheet>

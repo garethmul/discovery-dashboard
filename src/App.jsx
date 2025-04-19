@@ -4,6 +4,7 @@ import { SidebarLayout } from "./components/layout/sidebar-layout";
 import DomainListPage from "./components/domain-list/DomainListPage";
 import DomainDetailPage from "./components/domain-detail/DomainDetailPage";
 import HomePage from "./components/HomePage";
+import LoginPage from "./components/LoginPage";
 
 // NavigationLogger component to log route changes
 const NavigationLogger = () => {
@@ -26,6 +27,10 @@ function App() {
     <BrowserRouter basename={BASE_URL}>
       <NavigationLogger />
       <Routes>
+        {/* Login route */}
+        <Route path="/login" element={<LoginPage />} />
+        
+        {/* Protected routes */}
         <Route path="/" element={<SidebarLayout />}>
           <Route index element={<HomePage />} />
           <Route path="domains" element={<DomainListPage />} />

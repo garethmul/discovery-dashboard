@@ -4,9 +4,11 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import mysql from 'mysql2/promise';
 import { getDatabaseStatus, runDiagnosticQuery } from './server/api/controllers/diagnosticController.js';
 import authMiddleware from './server/middleware/authMiddleware.js';
+import passwordMiddleware from './server/middleware/passwordMiddleware.js';
 import youtubeRoutes from './backend/src/routes/youtubeRoutes.js';
 import externalLinksRoutes from './backend/src/routes/externalLinksRoutes.js';
 import booksRoutes from './backend/src/routes/booksRoutes.js';
@@ -32,6 +34,15 @@ app.use(cors());
 
 // Parse JSON requests
 app.use(express.json());
+
+// Parse URL-encoded form data
+app.use(express.urlencoded({ extended: true }));
+
+// Parse cookies - needed for password authentication
+app.use(cookieParser());
+
+// Apply password middleware for dashboard protection
+app.use(passwordMiddleware);
 
 // Serve static files from the frontend build directory
 app.use(express.static(DIST_DIR));
